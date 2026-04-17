@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="th" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบอัปเดตฐานข้อมูลนักเรียน ปีการศึกษา 2569</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                        darkbg: '#0f172a',
+                        darkcard: '#1e293b',
+                        darksidebar: '#162032',
+                        brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+                    },
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style type="text/tailwindcss">
+        /* Custom scrollbar สำหรับกล่องแชท */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* จัดการ Markdown ภายในแชท */
+        .chat-markdown strong { @apply font-bold text-gray-800; }
+        .chat-markdown ul { @apply list-disc pl-4 mt-1 space-y-1; }
+        .chat-markdown p { @apply mb-1; }
+    </style>
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Loader */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        .loader-lg {
+            width: 48px;
+            height: 48px;
+            border-width: 4px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Animation for Modal */
+        .modal-enter { animation: modalFadeIn 0.3s ease-out forwards; }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Sidebar transitions */
+        #sidebar { transition: width 0.3s ease, transform 0.3s ease; }
+        .sidebar-collapsed { width: 4.5rem !important; }
+        .sidebar-text { transition: opacity 0.2s ease; }
+        .sidebar-collapsed .sidebar-text { opacity: 0; display: none; }
+        
+        @media (max-width: 768px) {
+            #sidebar { position: fixed; height: 100%; z-index: 50; transform: translateX(-100%); width: 16rem !important; }
+            #sidebar.mobile-open { transform: translateX(0); }
+            .sidebar-collapsed .sidebar-text { display: block; opacity: 1; } /* Reset for mobile */
+        }
+        
+        /* SweetAlert Custom Font */
+        .swal2-container { font-family: 'Prompt', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-darkbg dark:text-slate-200 transition-colors duration-200 h-screen flex overflow-hidden">
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden backdrop-blur-sm transition-opacity" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar Dashboard -->
+    <aside id="sidebar" class="w-64 bg-white dark:bg-darksidebar shadow-xl border-r border-slate-200 dark:border-slate-800 flex flex-col hidden flex-shrink-0">
+        <!-- Sidebar Header -->
+        <div class="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800">
+            <div class="flex items-center space-x-3 overflow-hidden">
+                <div class="bg-blue-100 dark:bg-blue-900/50 p-1.5 rounded-lg flex-shrink-0">
+                    <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                </div>
+                <h1 class="text-base font-bold tracking-wide sidebar-text text-slate-800 dark:text-white truncate">ระบบนักเรียน <span class="text-primary">69</span></h1>
+            </div>
+            <!-- Desktop Collapse Button -->
+            <button onclick="toggleSidebarDesktop()" class="hidden md:block p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <svg id="collapseIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+            </button>
+            <!-- Mobile Close Button -->
+            <button onclick="toggleSidebar()" class="md:hidden p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- User Profile Area -->
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 sidebar-text">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xl shadow-inner border border-white dark:border-slate-600">
+                    👤
+                </div>
+                <div class="overflow-hidden">
+                    <p id="sidebarUserName" class="text-sm font-bold text-slate-800 dark:text-white truncate">ผู้ใช้งาน</p>
+                    <p id="sidebarUserRole" class="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">ห้อง ...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Menus -->
+        <nav class="flex-grow p-3 space-y-1.5 overflow-y-auto custom-scrollbar">
+            <!-- Menus for Both Teachers & Admins -->
+            <button onclick="switchMenu('data')" id="menu-data" class="w-full flex items-center p-3 rounded-xl transition-colors font-medium text-sm group nav-menu active bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                <span class="sidebar-text truncate">อัปเดตข้อมูลนักเรียน</span>
+            </button>
+            
+            <button onclick="switchMenu('overview')" id="menu-overview" class="w-full flex items-center p-3 rounded-xl transition-colors font-medium text-sm group nav-menu text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/50">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <span class="sidebar-text truncate">สถิติภาพรวม</span>
+            </button>
+
+            <button onclick="switchMenu('note')" id="menu-note" class="w-full flex items-center p-3 rounded-xl transition-colors font-medium text-sm group nav-menu text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/50">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                <span class="sidebar-text truncate">แจ้งหมายเหตุ</span>
+            </button>
+
+            <!-- Admin Only Menus -->
+            <div class="admin-only hidden pt-4 mt-2 border-t border-slate-200 dark:border-slate-800">
+                <p class="px-3 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 sidebar-text">ระบบผู้ดูแล (Admin)</p>
+                
+                <button onclick="switchMenu('arrange')" id="menu-arrange" class="w-full flex items-center p-3 rounded-xl transition-colors font-medium text-sm group nav-menu text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/50">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    <span class="sidebar-text truncate">จัดชั้นเรียนใหม่</span>
+                </button>
+
+                <button onclick="switchMenu('settings')" id="menu-settings" class="w-full flex items-center p-3 rounded-xl transition-colors font-medium text-sm group nav-menu text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/50">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span class="sidebar-text truncate">ตั้งค่าระบบ</span>
+                </button>
+            </div>
+
+            <!-- Utility Menus -->
+            <div class="pt-4 mt-2 border-t border-slate-200 dark:border-slate-800">
+                <button onclick="openGuideModal()" class="w-full flex items-center p-3 rounded-xl transition-colors font-medium text-sm group text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="sidebar-text truncate">คู่มือการใช้งาน</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Logout Bottom -->
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+            <button onclick="logout()" class="w-full flex items-center justify-center p-2.5 rounded-xl transition-colors font-medium text-sm bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/20 dark:text-rose-400 dark:hover:bg-rose-900/40">
+                <svg class="w-5 h-5 flex-shrink-0 md:mr-2 sidebar-collapsed-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <span class="sidebar-text">ออกจากระบบ</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 dark:bg-darkbg">
+        
+        <!-- Top Navbar -->
+        <header id="topNavbar" class="h-16 bg-white dark:bg-darkcard shadow-sm border-b border-slate-200 dark:border-slate-800 px-4 flex justify-between items-center z-10 flex-shrink-0">
+            <div class="flex items-center">
+                <!-- Mobile Hamburger -->
+                <button id="btnHamburger" onclick="toggleSidebar()" class="hidden p-2 -ml-2 mr-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 focus:outline-none md:hidden">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <h2 id="mobileHeaderTitle" class="text-lg font-bold text-slate-800 dark:text-white truncate block md:hidden">ระบบนร. 2569</h2>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button id="themeToggle" class="p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors focus:outline-none text-slate-500 dark:text-slate-400">
+                    <svg id="icon-sun" class="w-5 h-5 hidden text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 3.22a1 1 0 011.415 0l.708.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM14.22 15.78a1 1 0 010 1.415l-.708.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.415 0zM10 18a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zm-4.22-3.22a1 1 0 01-1.415 0l-.708-.707a1 1 0 011.414-1.414l.707.707a1 1 0 010 1.414zM2 10a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zm1.78-5.78a1 1 0 010-1.415l.708-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.415 0zM10 5a5 5 0 100 10 5 5 0 000-10z" clip-rule="evenodd"></path></svg>
+                    <svg id="icon-moon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Scrollable Area -->
+        <main class="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-6 lg:p-8 relative">
+            
+            <!-- Section: Login -->
+            <section id="loginSection" class="flex h-full items-center justify-center py-6">
+                <div class="bg-white dark:bg-darkcard p-6 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md border border-slate-100 dark:border-slate-800 relative overflow-hidden mx-2">
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 dark:opacity-20"></div>
+                    <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-secondary rounded-full mix-blend-multiply filter blur-3xl opacity-10 dark:opacity-20"></div>
+                    
+                    <div class="relative z-10 text-center mb-8">
+                        <div class="mx-auto h-24 w-24 sm:h-28 sm:w-28 bg-white rounded-full shadow-md border-4 border-white dark:border-slate-800 overflow-hidden mb-4 sm:mb-5 flex items-center justify-center p-1">
+                            <img src="https://res.cloudinary.com/gukkghu/image/upload/v1646575846/gukkghu/%E0%B8%87%E0%B8%B2%E0%B8%99%E0%B8%AD%E0%B8%AD%E0%B8%81%E0%B9%81%E0%B8%9A%E0%B8%9A%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B9%84%E0%B8%A1%E0%B9%88%E0%B8%A1%E0%B8%B5%E0%B8%8A%E0%B8%B7%E0%B9%88%E0%B8%AD_aytvpq.png" 
+                                 alt="โลโก้โรงเรียน" 
+                                 class="w-full h-full object-contain" 
+                                 style="image-rendering: -webkit-optimize-contrast; transform: translateZ(0);">
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">เข้าสู่ระบบ</h2>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">จัดการฐานข้อมูลนักเรียนประจำปี 2569</p>
+                    </div>
+                    
+                    <form id="loginForm" class="space-y-4 sm:space-y-5 relative z-10">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold mb-1.5 text-slate-700 dark:text-slate-300">ชื่อผู้ใช้</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-4 w-4 sm:h-5 sm:w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                </div>
+                                <input type="text" id="username" required class="pl-9 sm:pl-10 w-full px-4 py-2.5 sm:py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none dark:bg-slate-800 dark:border-slate-600 transition-all font-medium text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold mb-1.5 text-slate-700 dark:text-slate-300">รหัสผ่าน</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-4 w-4 sm:h-5 sm:w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                </div>
+                                <input type="password" id="password" required class="pl-9 sm:pl-10 w-full px-4 py-2.5 sm:py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none dark:bg-slate-800 dark:border-slate-600 transition-all font-medium text-sm">
+                            </div>
+                        </div>
+                        <button type="submit" id="btnLogin" class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-3 sm:py-3.5 px-4 rounded-xl transition duration-200 flex justify-center items-center shadow-lg shadow-blue-500/30 active:scale-95 text-sm sm:text-base mt-2">
+                            <span id="loginText">เข้าสู่ระบบ</span>
+                            <div id="loginSpinner" class="loader ml-2 hidden" style="width: 20px; height: 20px; border-width: 3px;"></div>
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Section: Classroom Grid View -->
+            <section id="dataSection" class="hidden flex-col h-full max-w-7xl mx-auto w-full">
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-4 sm:mb-6 space-y-4 sm:space-y-0 bg-white dark:bg-darkcard p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <div class="text-center sm:text-left">
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white flex items-center justify-center sm:justify-start" id="roomTitle">
+                            ห้องเรียน ...
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center justify-center sm:justify-start font-medium">
+                            <span class="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 mr-2 shadow-sm"></span>
+                            คลิกที่สถานะเพื่ออัปเดตข้อมูลนักเรียน
+                        </p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+                        
+                        <!-- Search Input -->
+                        <div class="relative w-full sm:w-56 lg:w-64">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-4 w-4 sm:h-5 sm:w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                            <input type="text" id="searchInput" placeholder="ค้นหาชื่อ, รหัส..." class="pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none dark:bg-slate-800 dark:border-slate-700 text-sm shadow-inner transition-all">
+                        </div>
+
+                        <!-- Admin Room Selector -->
+                        <select id="roomSelector" class="hidden px-3 sm:px-4 py-2 sm:py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none dark:bg-slate-800 dark:border-slate-700 text-sm shadow-sm font-medium cursor-pointer">
+                        </select>
+                        
+                        <button id="btnSave" class="w-full sm:w-auto bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-white font-bold py-2 sm:py-2.5 px-4 sm:px-6 rounded-xl transition duration-200 shadow-lg hover:shadow-xl flex items-center justify-center transform active:scale-95 text-sm sm:text-base">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                            บันทึกข้อมูล
+                        </button>
+                    </div>
+                </div>
+
+                <!-- The Classroom Area (Responsive Table/Cards) -->
+                <div class="bg-transparent md:bg-white md:dark:bg-darkcard md:rounded-3xl md:shadow-xl md:border border-slate-100 dark:border-slate-800 overflow-hidden flex-grow flex flex-col relative md:pb-6 md:pt-8 min-h-[400px]">
+                    <div class="overflow-x-auto custom-scrollbar md:px-6">
+                        <!-- Table structure adapts to card layout on mobile -->
+                        <table id="classroomTable" class="w-full block md:table table-auto border-collapse text-left">
+                            <thead class="hidden md:table-header-group bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                                <tr>
+                                    <th class="px-3 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">ลำดับ</th>
+                                    <th class="px-3 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">รหัส</th>
+                                    <th class="px-3 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">ชื่อ-นามสกุล</th>
+                                    <th class="px-3 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider min-w-[280px]">สถานะ</th>
+                                    <th class="px-3 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">รายละเอียด</th>
+                                </tr>
+                            </thead>
+                            <!-- On mobile: space-y-4 creates gap between cards -->
+                            <tbody id="classroomTableBody" class="block md:table-row-group space-y-4 md:space-y-0 md:divide-y divide-slate-100 dark:divide-slate-800/50">
+                                <!-- Student rows injected here -->
+                            </tbody>
+                            <tbody id="noResultTbody" class="hidden">
+                                <tr>
+                                    <td colspan="5" class="px-3 py-12 text-center text-slate-500 dark:text-slate-400 font-bold text-base sm:text-lg bg-white dark:bg-darkcard rounded-xl border border-slate-200 dark:border-slate-800 md:border-none">
+                                        <svg class="w-12 h-12 sm:w-16 sm:h-16 text-slate-300 dark:text-slate-600 mb-3 sm:mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        ไม่พบนักเรียนที่ค้นหา
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Overview / Dashboard -->
+            <section id="overviewSection" class="hidden flex-col h-full max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white mb-2">ภาพรวมระดับโรงเรียน</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                    <div class="bg-white dark:bg-darkcard p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between transition-transform hover:scale-105 duration-300">
+                        <div>
+                            <p class="text-sm font-bold text-slate-500 dark:text-slate-400">จำนวนนักเรียนทั้งหมด</p>
+                            <p class="text-2xl sm:text-4xl font-black text-slate-800 dark:text-white mt-1" id="ovTotal">-</p>
+                        </div>
+                        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-50 shadow-inner">
+                            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-darkcard p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between transition-transform hover:scale-105 duration-300">
+                        <div>
+                            <p class="text-sm font-bold text-slate-500 dark:text-slate-400">อัปเดตข้อมูลแล้ว</p>
+                            <p class="text-2xl sm:text-4xl font-black text-emerald-600 dark:text-emerald-400 mt-1" id="ovUpdated">-</p>
+                        </div>
+                        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-emerald-50 dark:bg-emerald-900/30 rounded-full flex items-center justify-center shadow-inner">
+                            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-darkcard p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between transition-transform hover:scale-105 duration-300">
+                        <div>
+                            <p class="text-sm font-bold text-slate-500 dark:text-slate-400">ห้องที่ยังไม่อัปเดต</p>
+                            <p class="text-2xl sm:text-4xl font-black text-rose-600 dark:text-rose-400 mt-1" id="ovPendingRoomsCount">-</p>
+                        </div>
+                        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-rose-50 dark:bg-rose-900/30 rounded-full flex items-center justify-center shadow-inner">
+                            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 flex-grow">
+                    <div class="bg-white dark:bg-darkcard p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 lg:col-span-1 flex flex-col min-h-[300px]">
+                        <h3 class="font-bold text-lg mb-2 text-slate-800 dark:text-white">สัดส่วนสถานะนักเรียนทั้งหมด</h3>
+                        <p class="text-xs text-slate-500 mb-4">(เฉพาะที่อัปเดตแล้ว)</p>
+                        <div class="relative flex-grow flex items-center justify-center min-h-[250px] w-full">
+                            <canvas id="overviewChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-darkcard p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 lg:col-span-2 flex flex-col">
+                        <h3 class="font-bold text-lg mb-2 text-slate-800 dark:text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            ห้องที่ยังขาดข้อมูล / ยังไม่อัปเดต
+                        </h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">รายชื่อห้องที่ระบบยังไม่พบการอัปเดตข้อมูลสถานะนักเรียน</p>
+                        
+                        <div id="missingRoomsList" class="flex flex-wrap gap-2.5 overflow-y-auto max-h-[300px] content-start custom-scrollbar pr-2 pb-2">
+                        </div>
+                        
+                        <div id="allUpdatedMessage" class="hidden flex-col items-center justify-center py-10 flex-grow">
+                            <div class="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-emerald-500 mb-4 shadow-inner">
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <p class="font-bold text-xl text-emerald-600 dark:text-emerald-400">ยอดเยี่ยม!</p>
+                            <p class="text-slate-500 dark:text-slate-400 mt-1">คุณครูทุกห้องดำเนินการอัปเดตข้อมูลครบถ้วนแล้ว</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-darkcard p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 w-full flex flex-col">
+                    <h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-white flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        รายละเอียดสถิติรายห้อง
+                    </h3>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full table-auto border-collapse text-left whitespace-nowrap min-w-[800px]">
+                            <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                                <tr>
+                                    <th class="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">ห้อง</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase text-center">ทั้งหมด</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase text-center">อัปเดต</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase text-center">เลื่อนชั้น</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-purple-600 dark:text-purple-400 uppercase text-center">จบ(เดิม)</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-fuchsia-600 dark:text-fuchsia-400 uppercase text-center">จบ(ย้าย)</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase text-center">ซ้ำชั้น</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-rose-600 dark:text-rose-400 uppercase text-center">ลาออก</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-zinc-600 dark:text-zinc-400 uppercase text-center">รอจำหน่าย</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overviewTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/50">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Arrange Classes (ADMIN) -->
+            <section id="arrangeSection" class="hidden flex-col h-full max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
+                <div class="bg-white dark:bg-darkcard p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white mb-2 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        จัดชั้นเรียนใหม่ (เลื่อนชั้น / ซ้ำชั้น)
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">เลือกนักเรียนที่ได้รับการอัปเดตสถานะแล้ว เพื่อจัดเข้าห้องเรียนใหม่ในปีการศึกษาหน้า</p>
+
+                    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase">กรองตามห้องเดิม</label>
+                            <select id="arrangeFilterRoom" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:bg-slate-800 dark:border-slate-700 text-sm cursor-pointer shadow-sm">
+                                <option value="">แสดงทุกห้อง</option>
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 uppercase">ระบุชั้น/ห้องใหม่เป้าหมาย</label>
+                            <input type="text" id="arrangeTargetRoom" placeholder="เช่น ป.2/1 หรือ ม.1/1" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:bg-slate-800 dark:border-slate-700 text-sm shadow-sm border-indigo-300 dark:border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20" list="roomSuggestions">
+                            <datalist id="roomSuggestions"></datalist>
+                        </div>
+                        <div class="flex items-end">
+                            <button id="btnSaveArrangement" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-xl transition duration-200 shadow-md text-sm flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                                จัดเข้าห้องใหม่ (คัดลอก)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Arrange Table (Responsive Cards on Mobile) -->
+                    <div class="bg-transparent md:bg-white md:dark:bg-transparent md:border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                        <table class="w-full block md:table table-auto border-collapse text-left md:whitespace-nowrap min-w-full md:min-w-[600px]">
+                            <thead class="hidden md:table-header-group bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                                <tr>
+                                    <th class="px-4 py-3 w-10 text-center">
+                                        <input type="checkbox" id="arrangeSelectAll" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                                    </th>
+                                    <th class="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">รหัส</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">ชื่อ-นามสกุล</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">ห้องเดิม</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">สถานะที่บันทึกไว้</th>
+                                </tr>
+                            </thead>
+                            <!-- Mobile space-y-4 gap for cards -->
+                            <tbody id="arrangeTableBody" class="block md:table-row-group space-y-4 md:space-y-0 md:divide-y divide-slate-100 dark:divide-slate-800/50">
+                                <tr class="block md:table-row bg-white dark:bg-darkcard border border-slate-200 dark:border-slate-700 md:border-none rounded-xl md:rounded-none shadow-sm md:shadow-none"><td colspan="5" class="px-4 py-8 text-center text-slate-500">คลิกเพื่อโหลดข้อมูลรายชื่อที่รอจัดห้อง</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Settings (ADMIN) -->
+            <section id="settingsSection" class="hidden flex-col h-full max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
+                <div class="bg-white dark:bg-darkcard p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white mb-2 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        ตั้งค่าระบบ
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">จัดการโครงสร้างห้องเรียนในปีการศึกษาใหม่ และมอบหมายสิทธิ์ครูประจำชั้น</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-slate-50 dark:bg-slate-800/30">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-slate-800 dark:text-white">รายชื่อห้องเรียนทั้งหมด</h3>
+                            </div>
+                            <div class="overflow-y-auto max-h-[300px] custom-scrollbar">
+                                <ul class="space-y-2" id="settingsRoomsList">
+                                    <li class="p-4 text-center text-slate-500 text-sm">กำลังโหลดข้อมูล...</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-slate-50 dark:bg-slate-800/30">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-slate-800 dark:text-white">บัญชีผู้ใช้งาน (ครูประจำชั้น)</h3>
+                            </div>
+                            <div class="overflow-y-auto max-h-[300px] custom-scrollbar">
+                                <ul class="space-y-2" id="settingsUsersList">
+                                    <li class="p-4 text-center text-slate-500 text-sm">กำลังโหลดข้อมูล...</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Note / Feedback -->
+            <section id="noteSection" class="hidden flex-col h-full max-w-4xl mx-auto w-full space-y-4 sm:space-y-6 pt-4">
+                <div class="bg-white dark:bg-darkcard p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white mb-2 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        แจ้งหมายเหตุ / รายละเอียดเพิ่มเติม
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">กรุณากรอกรายละเอียดที่ต้องการแจ้งให้ผู้ดูแลระบบทราบ (เช่น นักเรียนย้ายออกกลางคันระบุสาเหตุ เป็นต้น)</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">ข้อความ / รายละเอียด</label>
+                            <textarea id="noteMessage" rows="6" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none dark:bg-slate-800 dark:border-slate-700 text-sm shadow-sm transition-all resize-none" placeholder="พิมพ์ข้อความที่คุณต้องการแจ้งที่นี่..."></textarea>
+                        </div>
+                        <div class="flex justify-end pt-2">
+                            <button onclick="submitNote()" class="bg-primary hover:bg-blue-600 text-white font-bold py-2.5 px-8 rounded-xl transition duration-200 shadow-md text-sm flex items-center transform active:scale-95">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                                บันทึกหมายเหตุ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Summary -->
+            <section id="summarySection" class="hidden flex-col items-center py-4 sm:py-8 max-w-7xl mx-auto w-full">
+                <div class="bg-white dark:bg-darkcard p-6 sm:p-10 rounded-3xl shadow-xl w-full max-w-4xl border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden mx-2">
+                    <h2 class="text-2xl sm:text-3xl font-extrabold mb-1.5 sm:mb-2 text-slate-800 dark:text-white relative z-10 tracking-tight" id="summaryRoomText">สรุปข้อมูลสถานะห้อง</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 sm:mb-10 relative z-10 font-medium">สถิติแสดงหลังจากการบันทึกข้อมูลล่าสุด</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10 items-center relative z-10">
+                        <div class="relative h-56 sm:h-64 w-full flex justify-center">
+                            <canvas id="statsChart"></canvas>
+                        </div>
+                        
+                        <div class="text-left space-y-2.5 sm:space-y-3">
+                            <div id="boxPromoted" class="flex items-center justify-between p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/50 transition shadow-sm">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-500 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                                    </div>
+                                    <span class="font-bold text-sm sm:text-base text-blue-800 dark:text-blue-300">เลื่อนชั้น</span>
+                                </div>
+                                <span class="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400" id="statPromoted">0</span>
+                            </div>
+                            
+                            <div id="boxGradSame" class="flex items-center justify-between p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 rounded-2xl border border-purple-100 dark:border-purple-800/50 transition shadow-sm">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-500 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    <span class="font-bold text-sm sm:text-base text-purple-800 dark:text-purple-300" id="labelGradSame">สำเร็จการศึกษา (ต่อที่เดิม)</span>
+                                </div>
+                                <span class="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400" id="statGradSame">0</span>
+                            </div>
+
+                            <div id="boxGradDiff" class="flex items-center justify-between p-3 sm:p-4 bg-fuchsia-50 dark:bg-fuchsia-900/20 rounded-2xl border border-fuchsia-100 dark:border-fuchsia-800/50 transition shadow-sm">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-fuchsia-100 dark:bg-fuchsia-900/50 text-fuchsia-500 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                    </div>
+                                    <span class="font-bold text-sm sm:text-base text-fuchsia-800 dark:text-fuchsia-300" id="labelGradDiff">สำเร็จการศึกษา (ย้ายโรงเรียน)</span>
+                                </div>
+                                <span class="text-xl sm:text-2xl font-black text-fuchsia-600 dark:text-fuchsia-400" id="statGradDiff">0</span>
+                            </div>
+
+                            <div id="boxRetained" class="flex items-center justify-between p-3 sm:p-4 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/50 transition shadow-sm">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-500 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                    </div>
+                                    <span class="font-bold text-sm sm:text-base text-amber-800 dark:text-amber-300">ซ้ำชั้น</span>
+                                </div>
+                                <span class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400" id="statRetained">0</span>
+                            </div>
+
+                            <div id="boxLeft" class="flex items-center justify-between p-3 sm:p-4 bg-rose-50 dark:bg-rose-900/20 rounded-2xl border border-rose-100 dark:border-rose-800/50 transition shadow-sm">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-500 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                    </div>
+                                    <span class="font-bold text-sm sm:text-base text-rose-800 dark:text-rose-300">ย้าย / ลาออก</span>
+                                </div>
+                                <span class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400" id="statLeft">0</span>
+                            </div>
+
+                            <div id="boxPendingRemove" class="flex items-center justify-between p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-700 transition shadow-sm">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM17 11h4"></path></svg>
+                                    </div>
+                                    <span class="font-bold text-sm sm:text-base text-zinc-800 dark:text-zinc-300">รอจำหน่าย</span>
+                                </div>
+                                <span class="text-xl sm:text-2xl font-black text-zinc-600 dark:text-zinc-400" id="statPendingRemove">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 sm:mt-10 relative z-10">
+                        <button onclick="switchMenu('data')" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold py-3 sm:py-3.5 px-8 rounded-xl transition duration-200 shadow-sm border border-slate-200 dark:border-slate-700">
+                            <svg class="w-5 h-5 inline mr-1.5 sm:mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                            กลับไปหน้ารายชื่อ
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Manual/Guide Modal -->
+    <div id="guideModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[70] flex items-center justify-center hidden opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-white dark:bg-darkcard w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]" id="guideModalContent">
+            
+            <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-indigo-50 dark:bg-indigo-900/20">
+                <div class="flex items-center text-indigo-600 dark:text-indigo-400">
+                    <svg class="w-7 h-7 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    <h3 class="text-xl font-extrabold text-slate-800 dark:text-white tracking-tight">คู่มือการใช้งาน</h3>
+                </div>
+                <button onclick="closeGuideModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors focus:outline-none bg-white dark:bg-slate-800 rounded-full p-1.5 shadow-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scrollbar text-slate-600 dark:text-slate-300">
+                <ol class="list-decimal pl-5 space-y-2 mb-8 font-medium text-sm sm:text-base">
+                    <li><span class="text-slate-800 dark:text-slate-100">คลิกเลือกสถานะการศึกษา</span> จากปุ่มตัวเลือกในคอลัมน์ "สถานะ" ของตาราง</li>
+                    <li>หากเลือก "สำเร็จการศึกษา" จะมีตัวเลือกย่อยปรากฏขึ้นมาให้ระบุสถานที่เรียนต่อ</li>
+                    <li>เมื่อจัดการครบเรียบร้อย ให้กดปุ่ม <span class="bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 px-2 py-0.5 rounded text-xs border border-slate-300">บันทึกข้อมูล</span> ที่มุมขวาบน</li>
+                    <li>หากต้องการแจ้งรายละเอียดเพิ่มเติม (เช่น สาเหตุการย้าย/ลาออก) สามารถใช้เมนู <span class="text-amber-600 dark:text-amber-400 font-bold">"แจ้งหมายเหตุ"</span> แถบด้านซ้ายมือได้</li>
+                </ol>
+
+                <h4 class="font-extrabold text-slate-800 dark:text-white mb-4 border-b border-slate-200 dark:border-slate-700 pb-2 text-lg">ความหมายของสถานะต่างๆ</h4>
+                
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <div class="bg-blue-100 dark:bg-blue-900/30 text-blue-500 p-2 rounded-lg mr-4 flex-shrink-0 mt-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800 dark:text-slate-100">เลื่อนชั้น</p>
+                            <p class="text-sm">นักเรียนที่มีสิทธิ์ศึกษาต่อและได้เลื่อนขึ้นในระดับชั้นถัดไป</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="bg-purple-100 dark:bg-purple-900/30 text-purple-500 p-2 rounded-lg mr-4 flex-shrink-0 mt-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800 dark:text-slate-100">สำเร็จการศึกษา <span class="font-normal text-xs text-purple-500">(เฉพาะ อ.3, ป.6, ม.3)</span></p>
+                            <p class="text-sm">จบช่วงชั้นสูงสุด มีให้เลือกต่อว่าศึกษาที่เดิมหรือย้าย</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="bg-amber-100 dark:bg-amber-900/30 text-amber-500 p-2 rounded-lg mr-4 flex-shrink-0 mt-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800 dark:text-slate-100">ซ้ำชั้น</p>
+                            <p class="text-sm">นักเรียนที่ยังไม่ผ่านเกณฑ์การประเมิน ต้องเรียนซ้ำเดิม</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="bg-rose-100 dark:bg-rose-900/30 text-rose-500 p-2 rounded-lg mr-4 flex-shrink-0 mt-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800 dark:text-slate-100">ย้าย / ลาออก</p>
+                            <p class="text-sm">นักเรียนที่ขอย้ายสถานศึกษากลางคัน หรือลาออก</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 p-2 rounded-lg mr-4 flex-shrink-0 mt-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM17 11h4"></path></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800 dark:text-slate-100">รอจำหน่าย</p>
+                            <p class="text-sm">ไม่มีตัวตน หรืออยู่ระหว่างรอดำเนินการตัดรายชื่อออก</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="p-6 bg-slate-50 dark:bg-slate-800/50">
+                <button onclick="closeGuideModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 sm:py-3.5 px-4 rounded-xl transition duration-200 shadow-md text-base sm:text-lg">
+                    เข้าใจแล้ว, เริ่มใช้งาน
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] flex-col items-center justify-center hidden transition-opacity">
+        <div class="bg-white dark:bg-darkcard p-5 sm:p-6 rounded-3xl shadow-2xl flex flex-col items-center border border-slate-100 dark:border-slate-800 w-56 sm:w-64">
+            <div class="loader loader-lg mb-3 sm:mb-4" style="border-top-color: #3b82f6;"></div>
+            <p class="text-slate-800 dark:text-white font-bold text-base sm:text-lg" id="loadingText">กำลังประมวลผล...</p>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- AI Chat Widget -->
+    <!-- ============================================== -->
+    <div id="ai-chat-widget" class="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
+        <!-- Chat Window -->
+        <div id="ai-chat-window" class="hidden w-[90vw] sm:w-96 max-h-[70vh] sm:max-h-[500px] h-[500px] bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] border border-brand-100 flex-col mb-4 overflow-hidden transition-all transform origin-bottom-right">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-brand-600 to-indigo-600 p-4 text-white flex justify-between items-center shadow-md">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <span class="font-bold text-[15px] block leading-tight">AI ผู้ช่วยของธุรการไทยงาม</span>
+                        <span class="text-[11px] text-brand-100 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                            พร้อมรับคำถามและให้คำแนะนำแล้ว
+                        </span>
+                    </div>
+                </div>
+                <button onclick="toggleChat()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1.5 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Messages Area -->
+            <div id="ai-chat-messages" class="flex-1 p-4 overflow-y-auto bg-[#f8fafc] flex flex-col gap-4 custom-scrollbar">
+                <!-- Default AI Greeting -->
+                <div class="self-start flex flex-col gap-1 w-full max-w-[85%]">
+                    <div class="flex items-center gap-2 ml-1">
+                        <div class="w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        <span class="text-[10px] font-medium text-gray-400">AI Assistant</span>
+                    </div>
+                    <div class="bg-white border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl rounded-tl-sm text-[13px] shadow-sm chat-markdown">
+                        สวัสดีค่ะ 🙏 ฉันคือ AI ผู้ช่วยสำหรับ <b>เจ้าหน้าที่ธุรการโรงเรียนชุมชนวัดไทยงาม</b> มีอะไรให้ดิฉันช่วยแนะนำ หรือสอบถามข้อมูลเพิ่มเติม ทั้งที่เกี่ยวกับระบบนี้หรืองานธุรการโรงเรียน สอบถามได้เลยค่ะ 
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="p-3 sm:p-4 bg-white border-t border-gray-100">
+                <div class="relative flex items-center">
+                    <input type="text" id="ai-chat-input" placeholder="พิมพ์คำถามของคุณที่นี่..." class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-full focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 block px-4 py-3 pr-12 transition-all outline-none" onkeypress="handleChatKeyPress(event)">
+                    <button onclick="sendChatMessage()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-brand-600 text-white rounded-full flex items-center justify-center hover:bg-brand-700 hover:scale-105 transition-all shadow-sm disabled:opacity-50" id="ai-send-btn">
+                        <svg class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Toggle Button -->
+        <button onclick="toggleChat()" id="ai-toggle-btn" class="w-14 h-14 bg-gradient-to-r from-brand-600 to-indigo-600 rounded-full shadow-lg shadow-brand-500/40 flex items-center justify-center text-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative group">
+            <span class="absolute inset-0 rounded-full border-2 border-brand-400 animate-ping opacity-50" id="ai-pulse"></span>
+            <svg class="w-7 h-7 transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+        </button>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- AI Chat Scripts -->
+    <!-- ============================================== -->
+    <script>
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyqRmFyGrvR_mZQxxyElTPsxS8dqcldScPWG7LpDt7BI6W2z1IrICf-FIda1D938IIk/exec'; 
+
+        let chatHistory = [];
+
+        function toggleChat() {
+            const win = document.getElementById('ai-chat-window');
+            const pulse = document.getElementById('ai-pulse');
+            if(win.classList.contains('hidden')) {
+                win.classList.remove('hidden'); win.classList.add('flex');
+                if(pulse) pulse.classList.add('hidden');
+                document.getElementById('ai-chat-input').focus();
+            } else {
+                win.classList.add('hidden'); win.classList.remove('flex');
+            }
+        }
+
+        function handleChatKeyPress(e) { if (e.key === 'Enter') sendChatMessage(); }
+
+        function appendChatMessage(text, sender) {
+            const container = document.getElementById('ai-chat-messages');
+            const wrapper = document.createElement('div');
+            let parsedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+
+            if (sender === 'user') {
+                wrapper.className = 'self-end flex flex-col gap-1 w-full max-w-[85%] items-end';
+                wrapper.innerHTML = `
+                    <div class="flex items-center gap-2 mr-1"><span class="text-[10px] font-medium text-gray-400">คุณ</span><div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div></div>
+                    <div class="bg-brand-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-[13px] shadow-sm chat-markdown">${parsedText}</div>`;
+            } else {
+                wrapper.className = 'self-start flex flex-col gap-1 w-full max-w-[85%]';
+                wrapper.innerHTML = `
+                    <div class="flex items-center gap-2 ml-1"><div class="w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div><span class="text-[10px] font-medium text-gray-400">AI Assistant</span></div>
+                    <div class="bg-white border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl rounded-tl-sm text-[13px] shadow-sm chat-markdown">${parsedText}</div>`;
+            }
+            container.appendChild(wrapper); container.scrollTop = container.scrollHeight;
+        }
+
+        // ระบบพิมพ์ข้อความทีละตัวอักษร
+        function appendChatMessageTypewriter(text) {
+            const container = document.getElementById('ai-chat-messages');
+            const wrapper = document.createElement('div');
+            
+            let parsedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+
+            wrapper.className = 'self-start flex flex-col gap-1 w-full max-w-[85%]';
+            wrapper.innerHTML = `
+                <div class="flex items-center gap-2 ml-1"><div class="w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div><span class="text-[10px] font-medium text-gray-400">AI Assistant</span></div>
+                <div class="bg-white border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl rounded-tl-sm text-[13px] shadow-sm chat-markdown"></div>`;
+            
+            container.appendChild(wrapper);
+            const textContainer = wrapper.querySelector('.chat-markdown');
+            
+            let i = 0; let isTag = false; let currentHTML = "";
+
+            function type() {
+                if (i < parsedText.length) {
+                    let char = parsedText.charAt(i);
+                    if (char === '<') isTag = true;
+                    currentHTML += char;
+                    if (char === '>') isTag = false;
+
+                    if (isTag) {
+                        i++; type(); 
+                    } else {
+                        textContainer.innerHTML = currentHTML;
+                        container.scrollTop = container.scrollHeight;
+                        i++; setTimeout(type, 15);
+                    }
+                }
+            }
+            type();
+        }
+
+        function appendTypingIndicator() {
+            const container = document.getElementById('ai-chat-messages');
+            const wrapper = document.createElement('div'); wrapper.id = 'ai-typing-indicator'; wrapper.className = 'self-start flex flex-col gap-1 w-full max-w-[85%]';
+            wrapper.innerHTML = `<div class="flex items-center gap-2 ml-1"><div class="w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div><span class="text-[10px] font-medium text-gray-400">กำลังพิมพ์...</span></div><div class="bg-white border border-gray-200 text-gray-400 px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm flex gap-1 items-center w-16 h-10"><div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div><div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div><div class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div></div>`;
+            container.appendChild(wrapper); container.scrollTop = container.scrollHeight;
+        }
+
+        function removeTypingIndicator() { const indicator = document.getElementById('ai-typing-indicator'); if (indicator) indicator.remove(); }
+
+        async function sendChatMessage() {
+            const inputEl = document.getElementById('ai-chat-input');
+            const btnEl = document.getElementById('ai-send-btn');
+            const userMsg = inputEl.value.trim();
+            
+            if(!userMsg) return;
+
+            appendChatMessage(userMsg, 'user');
+            inputEl.value = ''; inputEl.disabled = true; btnEl.disabled = true;
+            appendTypingIndicator();
+
+            chatHistory.push({ role: "user", parts: [{ text: userMsg }] });
+
+            const payload = {
+                action: "chatAI",
+                contents: chatHistory
+            };
+
+            try {
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                
+                const result = await response.json();
+                console.log("AI Response Data:", result);
+                
+                if(result.status === 'success' && result.text) {
+                    chatHistory.push({ role: "model", parts: [{ text: result.text }] });
+                    removeTypingIndicator();
+                    appendChatMessageTypewriter(result.text);
+                } else {
+                    throw new Error("AI response error");
+                }
+
+            } catch (err) {
+                console.error("AI Chat Error:", err);
+                removeTypingIndicator();
+                chatHistory.pop(); 
+                appendChatMessageTypewriter("ขออภัยค่ะ ระบบเซิร์ฟเวอร์ของโรงเรียนขัดข้องชั่วคราว กรุณาลองใหม่อีกครั้งนะคะ");
+            } finally {
+                inputEl.disabled = false; btnEl.disabled = false; inputEl.focus();
+            }
+        }
+    </script>
+
+    <!-- ============================================== -->
+    <!-- Main Application Scripts -->
+    <!-- ============================================== -->
+    <script>
+        // ==========================================
+        // CONFIGURATION
+        // ==========================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbyqRmFyGrvR_mZQxxyElTPsxS8dqcldScPWG7LpDt7BI6W2z1IrICf-FIda1D938IIk/exec"; 
+        
+        // ==========================================
+        // STATE MANAGEMENT
+        // ==========================================
+        let currentUser = null;
+        let currentRole = null;
+        let currentRoom = null;
+        let studentsData = [];
+        let arrangeData = []; 
+        let allRoomsList = []; 
+        let chartInstance = null;
+        let overviewChartInstance = null;
+        
+        // ==========================================
+        // DOM ELEMENTS
+        // ==========================================
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        
+        const sections = {
+            login: document.getElementById('loginSection'),
+            data: document.getElementById('dataSection'),
+            summary: document.getElementById('summarySection'),
+            overview: document.getElementById('overviewSection'),
+            settings: document.getElementById('settingsSection'), 
+            arrange: document.getElementById('arrangeSection'),
+            note: document.getElementById('noteSection')
+        };
+        
+        const ui = {
+            sidebar: document.getElementById('sidebar'),
+            sidebarOverlay: document.getElementById('sidebarOverlay'),
+            btnHamburger: document.getElementById('btnHamburger'),
+            sidebarUserName: document.getElementById('sidebarUserName'),
+            sidebarUserRole: document.getElementById('sidebarUserRole'),
+            loadingOverlay: document.getElementById('loadingOverlay'),
+            loadingText: document.getElementById('loadingText'),
+            classroomTable: document.getElementById('classroomTable'),
+            classroomTableBody: document.getElementById('classroomTableBody'),
+            roomTitle: document.getElementById('roomTitle'),
+            roomSelector: document.getElementById('roomSelector'),
+            searchInput: document.getElementById('searchInput'),
+            noResultMsg: document.getElementById('noResultMsg'),
+            btnSave: document.getElementById('btnSave'),
+            
+            // ADMIN UI
+            settingsRoomsList: document.getElementById('settingsRoomsList'),
+            settingsUsersList: document.getElementById('settingsUsersList'),
+            arrangeFilterRoom: document.getElementById('arrangeFilterRoom'),
+            arrangeTargetRoom: document.getElementById('arrangeTargetRoom'),
+            arrangeTableBody: document.getElementById('arrangeTableBody'),
+            arrangeSelectAll: document.getElementById('arrangeSelectAll'),
+            btnSaveArrangement: document.getElementById('btnSaveArrangement')
+        };
+
+        const guideModal = {
+            container: document.getElementById('guideModal'),
+            content: document.getElementById('guideModalContent')
+        };
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                html.classList.add('dark');
+                document.getElementById('icon-sun').classList.remove('hidden');
+                document.getElementById('icon-moon').classList.add('hidden');
+            }
+
+            themeToggle.addEventListener('click', toggleTheme);
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            ui.btnSave.addEventListener('click', saveData);
+            ui.roomSelector.addEventListener('change', (e) => switchRoom(e.target.value));
+            ui.searchInput.addEventListener('input', filterStudents);
+            
+            // Admin Listeners
+            ui.arrangeSelectAll.addEventListener('change', toggleSelectAllArrange);
+            ui.arrangeFilterRoom.addEventListener('change', renderArrangeTable);
+            ui.btnSaveArrangement.addEventListener('click', saveArrangement);
+        });
+
+        function toggleTheme() {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.theme = isDark ? 'dark' : 'light';
+            document.getElementById('icon-sun').classList.toggle('hidden', !isDark);
+            document.getElementById('icon-moon').classList.toggle('hidden', isDark);
+            
+            if (chartInstance) {
+                chartInstance.options.plugins.legend.labels.color = isDark ? '#e5e7eb' : '#475569';
+                chartInstance.update();
+            }
+            if (overviewChartInstance) {
+                overviewChartInstance.options.plugins.legend.labels.color = isDark ? '#e5e7eb' : '#475569';
+                overviewChartInstance.update();
+            }
+        }
+
+        // Sidebar Toggle Logic
+        function toggleSidebar() {
+            ui.sidebar.classList.toggle('mobile-open');
+            ui.sidebarOverlay.classList.toggle('hidden');
+        }
+
+        function toggleSidebarDesktop() {
+            ui.sidebar.classList.toggle('sidebar-collapsed');
+            const icon = document.getElementById('collapseIcon');
+            if (ui.sidebar.classList.contains('sidebar-collapsed')) {
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>`;
+            } else {
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>`;
+            }
+        }
+
+        // ==========================================
+        // API COMMUNICATION
+        // ==========================================
+        async function fetchAPI(payload) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                return await response.json();
+            } catch (error) {
+                console.error("API Error:", error);
+                throw error;
+            }
+        }
+
+        // ==========================================
+        // LOGIC FUNCTIONS
+        // ==========================================
+        async function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            
+            const btn = document.getElementById('btnLogin');
+            const text = document.getElementById('loginText');
+            const spin = document.getElementById('loginSpinner');
+            
+            btn.disabled = true;
+            text.classList.add('hidden');
+            spin.classList.remove('hidden');
+
+            try {
+                const res = await fetchAPI({ action: 'login', username: user, password: pass });
+                
+                if (res.status === 'success') {
+                    currentUser = res.user;
+                    currentRole = res.role;
+                    currentRoom = res.room;
+                    studentsData = res.students || [];
+
+                    setupUI();
+                    
+                    if (currentRole === 'admin' && res.allRooms) {
+                        allRoomsList = res.allRooms;
+                        ui.roomSelector.innerHTML = res.allRooms.map(r => `<option value="${r}">${r}</option>`).join('');
+                        ui.roomSelector.classList.remove('hidden');
+                        if (res.allRooms.length > 0) currentRoom = res.allRooms[0];
+                        
+                        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+                    }
+
+                    ui.searchInput.value = '';
+                    renderClassroom();
+                    switchMenu('data'); 
+                    
+                    ui.sidebar.classList.remove('hidden');
+                    ui.btnHamburger.classList.remove('hidden');
+
+                    openGuideModal();
+                    
+                } else {
+                    Swal.fire({ title: 'เกิดข้อผิดพลาด', text: res.message, icon: 'error', confirmButtonColor: '#3b82f6' });
+                }
+            } catch (err) {
+                Swal.fire({ title: 'เชื่อมต่อล้มเหลว', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', icon: 'error', confirmButtonColor: '#3b82f6' });
+            } finally {
+                btn.disabled = false;
+                text.classList.remove('hidden');
+                spin.classList.add('hidden');
+            }
+        }
+
+        async function switchRoom(room) {
+            showLoading('กำลังโหลดข้อมูลห้อง ' + room);
+            try {
+                const res = await fetchAPI({ action: 'switchRoom', room: room });
+                if (res.status === 'success') {
+                    currentRoom = res.room;
+                    studentsData = res.students || [];
+                    ui.searchInput.value = '';
+                    renderClassroom();
+                } else {
+                    Swal.fire({ title: 'เกิดข้อผิดพลาด', text: res.message, icon: 'error', confirmButtonColor: '#3b82f6' });
+                }
+            } catch (err) {
+                Swal.fire({ title: 'เกิดข้อผิดพลาด', text: 'โหลดข้อมูลไม่สำเร็จ', icon: 'error', confirmButtonColor: '#3b82f6' });
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function saveData() {
+            showLoading('กำลังเก็บบันทึกข้อมูล...');
+            try {
+                const payload = {
+                    action: 'saveData',
+                    room: currentRoom,
+                    data: studentsData
+                };
+
+                const res = await fetchAPI(payload);
+                
+                if (res.status === 'success') {
+                    Swal.fire({
+                        title: 'บันทึกสำเร็จ!',
+                        text: 'ขอบคุณที่ดำเนินการอัปเดตข้อมูลนักเรียนครับ',
+                        icon: 'success',
+                        confirmButtonText: 'ดูสถิติห้อง',
+                        confirmButtonColor: '#10b981',
+                        allowOutsideClick: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            renderSummary();
+                            showSection('summary');
+                        }
+                    });
+
+                } else {
+                    Swal.fire({ title: 'เกิดข้อผิดพลาด', text: res.message, icon: 'error', confirmButtonColor: '#3b82f6' });
+                }
+            } catch (err) {
+                Swal.fire({ title: 'บันทึกไม่สำเร็จ', text: 'เกิดข้อผิดพลาดระหว่างการเชื่อมต่อ', icon: 'error', confirmButtonColor: '#3b82f6' });
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ==========================================
+        // SUBMIT NOTE / REMARK
+        // ==========================================
+        async function submitNote() {
+            const msgInput = document.getElementById('noteMessage');
+            const message = msgInput.value.trim();
+
+            if (!message) {
+                Swal.fire({title: 'แจ้งเตือน', text: 'กรุณากรอกข้อความก่อนกดส่ง', icon: 'warning', confirmButtonColor: '#f59e0b'});
+                return;
+            }
+
+            showLoading('กำลังส่งข้อมูล...');
+            try {
+                const payload = {
+                    action: 'submitNote',
+                    user: currentUser ? currentUser.name : 'Unknown',
+                    room: currentRoom || 'Unknown',
+                    message: message
+                };
+
+                const res = await fetchAPI(payload);
+
+                if (res.status === 'success') {
+                    Swal.fire({title: 'สำเร็จ', text: 'ส่งข้อมูลรายละเอียดเรียบร้อยแล้ว', icon: 'success', confirmButtonColor: '#10b981'});
+                    msgInput.value = ''; // เคลียร์ช่องพิมพ์
+                } else {
+                    Swal.fire({title: 'ข้อผิดพลาด', text: res.message, icon: 'error', confirmButtonColor: '#ef4444'});
+                }
+            } catch (err) {
+                Swal.fire({title: 'ข้อผิดพลาด', text: 'ไม่สามารถส่งข้อความได้ กรุณาลองใหม่', icon: 'error', confirmButtonColor: '#ef4444'});
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ==========================================
+        // UI RENDERING & CLASSROOM LOGIC
+        // ==========================================
+
+        function getRoomLevelInfo(roomName) {
+            if (!roomName) return { prefix: "", num: 0, isGrad: false };
+            let prefix = "";
+            let num = 0;
+            const match = roomName.match(/(อ\.|อนุบาล\s*|ป\.|ประถม\s*|ม\.|มัธยม\s*)(\d)/);
+            if (match) {
+                prefix = match[1].replace(/\s+/g, '');
+                num = parseInt(match[2]);
+            }
+            const isGrad = /(อ\.?3|ป\.?6|ม\.?3|อนุบาล\s*3|ประถม.*\s*6|มัธยม.*\s*3)/i.test(roomName);
+            return { prefix, num, isGrad };
+        }
+
+        function setupUI() {
+            ui.sidebarUserName.textContent = currentUser.name;
+            ui.sidebarUserRole.textContent = currentRole === 'admin' ? 'Administrator' : `ห้องเรียน ${currentUser.room}`;
+            ui.roomTitle.textContent = `ห้องเรียน ${currentRoom}`;
+        }
+
+        function getStatusTheme(status, isSelected) {
+            if (!isSelected) {
+                return 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400';
+            }
+            switch(status) {
+                case 'เลื่อนชั้น': return 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/30 ring-2 ring-blue-200 dark:ring-blue-900';
+                case 'สำเร็จการศึกษา': return 'bg-purple-500 text-white border-purple-500 shadow-md shadow-purple-500/30 ring-2 ring-purple-200 dark:ring-purple-900';
+                case 'ซ้ำชั้น': return 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/30 ring-2 ring-amber-200 dark:ring-amber-900';
+                case 'ย้าย/ลาออก': return 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/30 ring-2 ring-rose-200 dark:ring-rose-900';
+                case 'รอจำหน่าย': return 'bg-zinc-600 text-white border-zinc-600 shadow-md shadow-zinc-500/30 ring-2 ring-zinc-200 dark:ring-zinc-900';
+                default: return 'bg-slate-500 text-white border-slate-500';
+            }
+        }
+
+        function getRowBackgroundClass(status) {
+            switch(status) {
+                case 'เลื่อนชั้น': return 'bg-blue-50/40 dark:bg-blue-900/10';
+                case 'สำเร็จการศึกษา': return 'bg-purple-50/40 dark:bg-purple-900/10';
+                case 'ซ้ำชั้น': return 'bg-amber-50/40 dark:bg-amber-900/10';
+                case 'ย้าย/ลาออก': return 'bg-rose-50/40 dark:bg-rose-900/10';
+                case 'รอจำหน่าย': return 'bg-zinc-50/40 dark:bg-zinc-900/10 opacity-75 grayscale-[30%]';
+                default: return '';
+            }
+        }
+
+        function getSubStatusOptionsHTML(roomInfo, currentSubStatus) {
+            let currentGradeText = `${roomInfo.prefix}${roomInfo.num}`;
+            let gradOptions = `<option value="">-- ระบุสถานที่เรียนต่อ --</option>`;
+            
+            if (currentGradeText.includes("อ") || currentGradeText.includes("3")) {
+                gradOptions += `
+                    <option value="ต่อ ป.1 (โรงเรียนเดิม)" ${currentSubStatus === 'ต่อ ป.1 (โรงเรียนเดิม)' ? 'selected' : ''}>เรียนต่อ ป.1 (โรงเรียนเดิม)</option>
+                    <option value="ต่อ ป.1 (โรงเรียนใหม่)" ${currentSubStatus === 'ต่อ ป.1 (โรงเรียนใหม่)' ? 'selected' : ''}>ย้ายไปเรียนต่อ ป.1 (ที่อื่น)</option>`;
+            } else if (currentGradeText.includes("ป") || currentGradeText.includes("6")) {
+                gradOptions += `
+                    <option value="ต่อ ม.1 (โรงเรียนเดิม)" ${currentSubStatus === 'ต่อ ม.1 (โรงเรียนเดิม)' ? 'selected' : ''}>เรียนต่อ ม.1 (โรงเรียนเดิม)</option>
+                    <option value="ต่อ ม.1 (โรงเรียนใหม่)" ${currentSubStatus === 'ต่อ ม.1 (โรงเรียนใหม่)' ? 'selected' : ''}>ย้ายไปเรียนต่อ ม.1 (ที่อื่น)</option>`;
+            } else {
+                gradOptions += `
+                    <option value="ศึกษาต่อโรงเรียนเดิม" ${currentSubStatus === 'ศึกษาต่อโรงเรียนเดิม' ? 'selected' : ''}>ศึกษาต่อโรงเรียนเดิม</option>
+                    <option value="ย้ายโรงเรียน/อื่นๆ" ${currentSubStatus === 'ย้ายโรงเรียน/อื่นๆ' ? 'selected' : ''}>ย้ายโรงเรียน/อื่นๆ</option>`;
+            }
+            return gradOptions;
+        }
+
+        function renderClassroom() {
+            ui.roomTitle.textContent = `ห้องเรียน ${currentRoom}`;
+            ui.classroomTableBody.innerHTML = '';
+            
+            if (studentsData.length === 0) {
+                ui.classroomTableBody.innerHTML = `<tr><td colspan="5" class="px-3 py-12 text-center text-slate-500 font-bold text-base sm:text-lg bg-white dark:bg-darkcard rounded-xl border border-slate-200 dark:border-slate-800 md:border-none">ไม่มีรายชื่อนักเรียนในห้องนี้</td></tr>`;
+                return;
+            }
+
+            const roomInfo = getRoomLevelInfo(currentRoom);
+            const isGrad = roomInfo.isGrad;
+            const isM3 = roomInfo.prefix.includes("ม") && roomInfo.num === 3;
+            let nextGradeText = roomInfo.prefix ? `${roomInfo.prefix}${roomInfo.num + 1}` : 'เลื่อนชั้น';
+
+            const statusOptions = isGrad 
+                ? [
+                    { value: 'สำเร็จการศึกษา', label: 'สำเร็จการศึกษา' },
+                    { value: 'ซ้ำชั้น', label: 'ซ้ำชั้น' },
+                    { value: 'ย้าย/ลาออก', label: 'ย้าย/ลาออก' },
+                    { value: 'รอจำหน่าย', label: 'รอจำหน่าย' }
+                ]
+                : [
+                    { value: 'เลื่อนชั้น', label: 'เลื่อนชั้น' },
+                    { value: 'ซ้ำชั้น', label: 'ซ้ำชั้น' },
+                    { value: 'ย้าย/ลาออก', label: 'ย้าย/ลาออก' },
+                    { value: 'รอจำหน่าย', label: 'รอจำหน่าย' }
+                ];
+
+            studentsData.forEach((student, index) => {
+                if (!isGrad && student.status === 'สำเร็จการศึกษา') {
+                    student.status = 'เลื่อนชั้น';
+                    student.subStatus = '';
+                }
+                if (!student.status) student.status = isGrad ? 'สำเร็จการศึกษา' : 'เลื่อนชั้น';
+
+                let detailText = '';
+                if (student.status === 'เลื่อนชั้น') detailText = `<span class="text-blue-600 dark:text-blue-400 font-semibold">ขึ้น ${nextGradeText}</span>`;
+                else if (student.status === 'ซ้ำชั้น') detailText = `<span class="text-amber-600 dark:text-amber-400 font-semibold">เรียนซ้ำเดิม</span>`;
+                else if (student.status === 'ย้าย/ลาออก') detailText = `<span class="text-rose-600 dark:text-rose-400 font-semibold">ย้ายออก</span>`;
+                else if (student.status === 'รอจำหน่าย') detailText = `<span class="text-zinc-500 dark:text-zinc-400 font-semibold">รอจำหน่าย</span>`;
+                else if (student.status === 'สำเร็จการศึกษา') {
+                    if (isM3) detailText = '<span class="text-purple-600 dark:text-purple-400 font-semibold">จบ ม.3</span>';
+                    else if (student.subStatus) {
+                        if(student.subStatus.includes('เดิม')) detailText = '<span class="text-purple-600 dark:text-purple-400 font-semibold">ต่อที่เดิม</span>';
+                        else if(student.subStatus.includes('ใหม่')) detailText = '<span class="text-purple-600 dark:text-purple-400 font-semibold">ย้ายที่ใหม่</span>';
+                        else detailText = '<span class="text-orange-500 font-semibold">กรุณาระบุที่เรียน</span>';
+                    } else {
+                        detailText = '<span class="text-orange-500 font-semibold">ยังไม่ระบุที่เรียน</span>';
+                    }
+                }
+
+                const rowBg = getRowBackgroundClass(student.status);
+                const row = document.createElement('tr');
+                
+                // นำคลาส Responsive มาใช้ตรงนี้ (เปลี่ยนจาก tr ปกติ ให้กลายเป็น block/card บนมือถือ)
+                row.className = `student-row block md:table-row bg-white dark:bg-transparent border border-slate-200 dark:border-slate-700 md:border-none rounded-2xl md:rounded-none shadow-sm md:shadow-none overflow-hidden transition-colors duration-300 md:border-b md:border-slate-100 md:dark:border-slate-800/50 ${rowBg}`;
+                row.dataset.searchstr = `${student.id} ${student.name} ${student.surname}`.toLowerCase();
+                
+                const radioHtml = statusOptions.map(option => {
+                    const isSelected = student.status === option.value;
+                    const theme = getStatusTheme(option.value, isSelected);
+                    return `
+                        <label class="relative cursor-pointer inline-flex items-center">
+                            <input type="radio" name="status_${index}" value="${option.value}" class="peer sr-only status-radio" ${isSelected ? 'checked' : ''}>
+                            <div class="px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border select-none flex items-center justify-center ${theme}">
+                                ${option.label}
+                            </div>
+                        </label>
+                    `;
+                }).join('');
+
+                const showSubStatus = (student.status === 'สำเร็จการศึกษา' && !isM3);
+                const subStatusHtml = showSubStatus ? `
+                    <div class="mt-2.5 w-full">
+                        <select class="sub-status-select w-full text-xs sm:text-sm font-semibold text-purple-900 dark:text-purple-100 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-purple-300 dark:border-purple-600 rounded-lg focus:ring-2 focus:ring-purple-400 outline-none p-2 cursor-pointer shadow-sm">
+                            ${getSubStatusOptionsHTML(roomInfo, student.subStatus)}
+                        </select>
+                    </div>` : '';
+
+                row.innerHTML = `
+                    <!-- Mobile Header (แสดงเฉพาะบนมือถือ ซ่อนบน Desktop) -->
+                    <td class="md:hidden flex justify-between items-center px-4 py-2.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/80 rounded-t-2xl backdrop-blur-sm">
+                        <span class="font-bold text-xs text-slate-500 dark:text-slate-400">ลำดับที่ ${index + 1}</span>
+                        <span class="font-mono text-xs text-slate-500 dark:text-slate-400 font-bold">รหัส: ${student.id}</span>
+                    </td>
+
+                    <!-- Desktop ลำดับ & รหัส -->
+                    <td class="hidden md:table-cell px-3 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100">${index + 1}</td>
+                    <td class="hidden md:table-cell px-3 py-4 whitespace-nowrap text-sm font-mono text-slate-500 dark:text-slate-400">${student.id}</td>
+
+                    <!-- ชื่อ-นามสกุล -->
+                    <td class="block md:table-cell px-4 py-4 border-b border-slate-100 dark:border-slate-800 md:border-none">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 md:h-10 md:w-10">
+                                <div class="h-10 w-10 rounded-full flex items-center justify-center bg-white/50 dark:bg-slate-700/50 shadow-sm border border-slate-200 dark:border-slate-600">
+                                    <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
+                                    ${student.title}${student.name} ${student.surname}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- สถานะ -->
+                    <td class="block md:table-cell px-4 py-4 border-b border-slate-100 dark:border-slate-800 md:border-none bg-black/5 dark:bg-transparent">
+                        <span class="md:hidden block font-bold text-xs text-slate-500 dark:text-slate-400 mb-2">อัปเดตสถานะ:</span>
+                        <div class="flex flex-wrap gap-1.5 sm:gap-2 w-full justify-center sm:max-w-none">
+                            ${radioHtml}
+                        </div>
+                        ${subStatusHtml}
+                    </td>
+
+                    <!-- รายละเอียด -->
+                    <td class="flex md:table-cell justify-between items-center px-4 py-3 md:py-4 text-sm text-slate-500 dark:text-slate-400 bg-white/50 dark:bg-transparent rounded-b-2xl md:rounded-none">
+                        <span class="md:hidden font-bold text-xs text-slate-500 dark:text-slate-400">สรุปข้อมูล:</span>
+                        <div>${detailText}</div>
+                    </td>
+                `;
+
+                const radios = row.querySelectorAll('.status-radio');
+                radios.forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        if (e.target.checked) updateStudentStatus(index, e.target.value);
+                    });
+                });
+
+                const subStatusSelect = row.querySelector('.sub-status-select');
+                if (subStatusSelect) {
+                    subStatusSelect.addEventListener('change', (e) => {
+                        updateStudentSubStatus(index, e.target.value);
+                    });
+                }
+
+                ui.classroomTableBody.appendChild(row);
+            });
+            
+            if (ui.searchInput.value) {
+                ui.searchInput.dispatchEvent(new Event('input'));
+            }
+        }
+
+        function updateStudentStatus(index, newStatus) {
+            studentsData[index].status = newStatus;
+            if (newStatus !== 'สำเร็จการศึกษา') {
+                studentsData[index].subStatus = '';
+            }
+            renderClassroom();
+        }
+
+        function updateStudentSubStatus(index, newSubStatus) {
+            studentsData[index].subStatus = newSubStatus;
+            renderClassroom();
+        }
+
+        function filterStudents(e) {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.student-row');
+            let hasVisible = false;
+            
+            rows.forEach(row => {
+                if (row.dataset.searchstr.includes(term)) {
+                    row.style.display = '';
+                    hasVisible = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('noResultTbody').classList.toggle('hidden', hasVisible || rows.length === 0);
+        }
+
+        // ==========================================
+        // OVERVIEW LOGIC 
+        // ==========================================
+        async function loadOverviewData() {
+            showLoading('กำลังโหลดข้อมูลภาพรวม...');
+            try {
+                const res = await fetchAPI({ action: 'getOverview' });
+                if (res.status === 'success') {
+                    renderOverviewUI(res.stats, res.pendingRooms, res.roomStats);
+                } else {
+                    Swal.fire({ title: 'ข้อผิดพลาด', text: res.message || 'ไม่สามารถโหลดข้อมูลได้', icon: 'error', confirmButtonColor: '#3b82f6' });
+                    switchMenu('data');
+                }
+            } catch(err) {
+                 Swal.fire({ title: 'ข้อผิดพลาด', text: 'การเชื่อมต่อล้มเหลว', icon: 'error', confirmButtonColor: '#3b82f6' });
+                 switchMenu('data');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function renderOverviewUI(stats, pendingRooms, roomStats) {
+            document.getElementById('ovTotal').textContent = stats.totalStudents.toLocaleString();
+            document.getElementById('ovUpdated').textContent = stats.updatedStudents.toLocaleString();
+            document.getElementById('ovPendingRoomsCount').textContent = pendingRooms.length;
+
+            const missingList = document.getElementById('missingRoomsList');
+            const allUpdatedMsg = document.getElementById('allUpdatedMessage');
+            missingList.innerHTML = '';
+            
+            if (pendingRooms.length > 0) {
+                missingList.classList.remove('hidden');
+                allUpdatedMsg.classList.add('hidden');
+                
+                pendingRooms.forEach(room => {
+                    const chip = document.createElement('div');
+                    chip.className = "px-3 py-1.5 bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 text-sm font-bold rounded-lg border border-rose-100 dark:border-rose-800 shadow-sm flex items-center";
+                    chip.innerHTML = `<svg class="w-4 h-4 mr-1.5 opacity-70" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg> ${room}`;
+                    missingList.appendChild(chip);
+                });
+            } else {
+                missingList.classList.add('hidden');
+                allUpdatedMsg.classList.remove('hidden');
+                allUpdatedMsg.classList.add('flex');
+            }
+
+            const tbody = document.getElementById('overviewTableBody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                if (roomStats && roomStats.length > 0) {
+                    roomStats.forEach(room => {
+                        const tr = document.createElement('tr');
+                        tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors";
+                        
+                        const val = (num, colorClass) => num > 0 ? `<span class="font-bold ${colorClass}">${num}</span>` : `<span class="text-slate-300 dark:text-slate-600">0</span>`;
+
+                        tr.innerHTML = `
+                            <td class="px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-200">${room.room}</td>
+                            <td class="px-4 py-3 text-sm text-center font-semibold">${room.total}</td>
+                            <td class="px-4 py-3 text-sm text-center font-semibold text-emerald-600 dark:text-emerald-400">${room.updated}</td>
+                            <td class="px-4 py-3 text-sm text-center">${val(room.promoted, 'text-blue-600 dark:text-blue-400')}</td>
+                            <td class="px-4 py-3 text-sm text-center">${val(room.gradSame, 'text-purple-600 dark:text-purple-400')}</td>
+                            <td class="px-4 py-3 text-sm text-center">${val(room.gradDiff, 'text-fuchsia-600 dark:text-fuchsia-400')}</td>
+                            <td class="px-4 py-3 text-sm text-center">${val(room.retained, 'text-amber-600 dark:text-amber-400')}</td>
+                            <td class="px-4 py-3 text-sm text-center">${val(room.left, 'text-rose-600 dark:text-rose-400')}</td>
+                            <td class="px-4 py-3 text-sm text-center">${val(room.pendingRemove, 'text-zinc-600 dark:text-zinc-400')}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-8 text-center text-slate-500">กรุณาอัปเดตโค้ด Apps Script เพื่อรองรับการแสดงผลตาราง</td></tr>`;
+                }
+            }
+
+            const chartLabels = ['เลื่อนชั้น', 'สำเร็จการศึกษา (ที่เดิม)', 'สำเร็จการศึกษา (ย้าย)', 'ซ้ำชั้น', 'ย้าย/ลาออก', 'รอจำหน่าย'];
+            const chartData = [stats.promoted, stats.gradSame, stats.gradDiff, stats.retained, stats.left, stats.pendingRemove];
+            const chartColors = ['#3b82f6', '#a855f7', '#d946ef', '#f59e0b', '#f43f5e', '#71717a'];
+
+            const ctx = document.getElementById('overviewChart').getContext('2d');
+            const isDark = html.classList.contains('dark');
+            
+            if (overviewChartInstance) {
+                overviewChartInstance.destroy();
+            }
+
+            const hasData = chartData.some(val => val > 0);
+
+            overviewChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: hasData ? chartData : [1],
+                        backgroundColor: hasData ? chartColors : ['#e2e8f0'],
+                        borderWidth: 0, 
+                        hoverOffset: hasData ? 6 : 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            display: hasData,
+                            labels: {
+                                color: isDark ? '#e2e8f0' : '#475569',
+                                padding: 15,
+                                font: { family: "'Prompt', sans-serif", size: 12, weight: '600' },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            enabled: hasData
+                        }
+                    },
+                    cutout: '75%'
+                },
+                plugins: [{
+                    id: 'textCenter',
+                    beforeDraw: function(chart) {
+                        if (!hasData) {
+                            var width = chart.width, height = chart.height, ctx = chart.ctx;
+                            ctx.restore();
+                            var fontSize = (height / 114).toFixed(2);
+                            ctx.font = "bold " + fontSize + "em 'Prompt', sans-serif";
+                            ctx.textBaseline = "middle";
+                            ctx.fillStyle = isDark ? "#94a3b8" : "#94a3b8";
+                            var text = "ไม่มีข้อมูล",
+                                textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                textY = height / 2;
+                            ctx.fillText(text, textX, textY);
+                            ctx.save();
+                        }
+                    }
+                }]
+            });
+        }
+
+
+        // ==========================================
+        // ADMIN LOGIC (ตั้งค่า & จัดชั้นเรียน)
+        // ==========================================
+        async function loadSettingsData() {
+            showLoading('กำลังโหลดข้อมูลตั้งค่า...');
+            try {
+                const res = await fetchAPI({ action: 'getSettings' });
+                if (res.status === 'success') {
+                    ui.settingsUsersList.innerHTML = '';
+                    if(res.users && res.users.length > 0) {
+                        res.users.forEach(u => {
+                            const li = document.createElement('li');
+                            li.className = "flex justify-between items-center p-3 bg-white dark:bg-darkcard border border-slate-200 dark:border-slate-700 rounded-lg";
+                            const roleBadge = u.role === 'admin' ? `<span class="px-2 py-0.5 bg-rose-100 text-rose-600 rounded text-xs font-bold ml-2">Admin</span>` : '';
+                            li.innerHTML = `
+                                <div>
+                                    <p class="font-bold text-sm text-slate-800 dark:text-white">${u.name} ${roleBadge}</p>
+                                    <p class="text-xs text-slate-500">ห้อง: ${u.room || 'ไม่ได้ระบุ'} | Username: ${u.username}</p>
+                                </div>
+                                <button class="text-slate-400 hover:text-indigo-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                            `;
+                            ui.settingsUsersList.appendChild(li);
+                        });
+                    }
+                    
+                    ui.settingsRoomsList.innerHTML = '';
+                    if(res.rooms && res.rooms.length > 0) {
+                        res.rooms.forEach(r => {
+                            const li = document.createElement('li');
+                            li.className = "flex justify-between items-center p-3 bg-white dark:bg-darkcard border border-slate-200 dark:border-slate-700 rounded-lg";
+                            li.innerHTML = `
+                                <span class="font-bold text-sm text-slate-800 dark:text-white">ห้องเรียน ${r}</span>
+                                <div class="flex space-x-2">
+                                    <button class="text-slate-400 hover:text-indigo-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                                    <button class="text-slate-400 hover:text-rose-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                                </div>
+                            `;
+                            ui.settingsRoomsList.appendChild(li);
+                        });
+                    }
+                } else {
+                    Swal.fire({ title: 'ข้อผิดพลาด', text: res.message || 'ไม่สามารถโหลดข้อมูลตั้งค่าได้', icon: 'error', confirmButtonColor: '#3b82f6' });
+                    switchMenu('data');
+                }
+            } catch(err) {
+                 Swal.fire('ข้อผิดพลาด', 'การเชื่อมต่อล้มเหลว', 'error');
+                 switchMenu('data');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadArrangeData() {
+            showLoading('กำลังโหลดรายชื่อนักเรียน...');
+            try {
+                const res = await fetchAPI({ action: 'getArrangeData' });
+                if (res.status === 'success') {
+                    arrangeData = res.students || [];
+                    
+                    const datalist = document.getElementById('roomSuggestions');
+                    if (datalist) {
+                        datalist.innerHTML = '';
+                        allRoomsList.forEach(r => {
+                            datalist.innerHTML += `<option value="${r}"></option>`;
+                        });
+                    }
+                    
+                    const oldRooms = [...new Set(arrangeData.map(s => s.oldRoom))];
+                    ui.arrangeFilterRoom.innerHTML = '<option value="">แสดงทุกห้อง</option>';
+                    oldRooms.forEach(r => {
+                        ui.arrangeFilterRoom.innerHTML += `<option value="${r}">${r}</option>`;
+                    });
+
+                    renderArrangeTable();
+                } else {
+                    Swal.fire({ title: 'ข้อผิดพลาด', text: res.message || 'ไม่สามารถโหลดข้อมูลจัดชั้นเรียนได้', icon: 'error', confirmButtonColor: '#3b82f6' });
+                    switchMenu('data');
+                }
+            } catch(err) {
+                 Swal.fire('ข้อผิดพลาด', 'การเชื่อมต่อล้มเหลว', 'error');
+                 switchMenu('data');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function renderArrangeTable() {
+            const filterVal = ui.arrangeFilterRoom.value;
+            ui.arrangeTableBody.innerHTML = '';
+            
+            const filtered = arrangeData.filter(s => filterVal === "" || s.oldRoom === filterVal);
+            
+            if(filtered.length === 0) {
+                ui.arrangeTableBody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500 font-medium bg-white dark:bg-darkcard rounded-xl border border-slate-200 dark:border-slate-800 md:border-none">ไม่พบรายชื่อนักเรียนที่รอจัดห้อง</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(student => {
+                const tr = document.createElement('tr');
+                
+                // แปลงเป็น Card บนมือถือ
+                tr.className = "block md:table-row bg-white dark:bg-darkcard border border-slate-200 dark:border-slate-700 md:border-none rounded-xl md:rounded-none shadow-sm md:shadow-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors";
+                
+                const statusColor = student.status === 'เลื่อนชั้น' ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400';
+
+                tr.innerHTML = `
+                    <td class="flex md:table-cell justify-between items-center px-4 py-3 border-b md:border-none border-slate-100 dark:border-slate-800 md:text-center bg-slate-50/50 dark:bg-slate-800/30 md:bg-transparent rounded-t-xl md:rounded-none">
+                        <span class="md:hidden font-bold text-xs text-slate-500">เลือก</span>
+                        <input type="checkbox" value="${student.id}" class="arrange-checkbox w-5 h-5 md:w-4 md:h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                    </td>
+                    <td class="flex md:table-cell justify-between items-center px-4 py-3 border-b md:border-none border-slate-100 dark:border-slate-800">
+                        <span class="md:hidden font-bold text-xs text-slate-500">รหัส</span>
+                        <span class="text-sm font-mono text-slate-500 dark:text-slate-400">${student.id}</span>
+                    </td>
+                    <td class="flex md:table-cell justify-between items-center px-4 py-3 border-b md:border-none border-slate-100 dark:border-slate-800">
+                        <span class="md:hidden font-bold text-xs text-slate-500">ชื่อ-นามสกุล</span>
+                        <span class="text-sm font-bold text-slate-800 dark:text-slate-200">${student.name}</span>
+                    </td>
+                    <td class="flex md:table-cell justify-between items-center px-4 py-3 border-b md:border-none border-slate-100 dark:border-slate-800">
+                        <span class="md:hidden font-bold text-xs text-slate-500">ห้องเดิม</span>
+                        <span class="text-sm text-slate-600 dark:text-slate-300">${student.oldRoom}</span>
+                    </td>
+                    <td class="flex md:table-cell justify-between items-center px-4 py-3">
+                        <span class="md:hidden font-bold text-xs text-slate-500">สถานะ</span>
+                        <span class="text-sm font-bold ${statusColor}">${student.status}</span>
+                    </td>
+                `;
+                ui.arrangeTableBody.appendChild(tr);
+            });
+            
+            const checkboxes = document.querySelectorAll('.arrange-checkbox');
+            checkboxes.forEach(cb => cb.addEventListener('change', checkSelectAllState));
+            checkSelectAllState();
+        }
+
+        function toggleSelectAllArrange() {
+            const isChecked = ui.arrangeSelectAll.checked;
+            document.querySelectorAll('.arrange-checkbox').forEach(cb => {
+                cb.checked = isChecked;
+            });
+        }
+        
+        function checkSelectAllState() {
+            const allCbs = document.querySelectorAll('.arrange-checkbox');
+            if(allCbs.length === 0) {
+                ui.arrangeSelectAll.checked = false;
+                return;
+            }
+            const allChecked = Array.from(allCbs).every(cb => cb.checked);
+            const someChecked = Array.from(allCbs).some(cb => cb.checked);
+            ui.arrangeSelectAll.checked = allChecked;
+            ui.arrangeSelectAll.indeterminate = someChecked && !allChecked;
+        }
+
+        async function saveArrangement() {
+            const targetRoom = ui.arrangeTargetRoom.value.trim();
+            if(!targetRoom) {
+                Swal.fire('แจ้งเตือน', 'กรุณาระบุชั้น/ห้องใหม่', 'warning');
+                return;
+            }
+
+            const selectedStudents = Array.from(document.querySelectorAll('.arrange-checkbox:checked')).map(cb => {
+                const tr = cb.closest('tr');
+                return {
+                    id: cb.value,
+                    name: tr.cells[2].lastElementChild.innerText,
+                    oldRoom: tr.cells[3].lastElementChild.innerText,
+                    status: tr.cells[4].lastElementChild.innerText
+                };
+            });
+
+            if(selectedStudents.length === 0) {
+                Swal.fire('แจ้งเตือน', 'กรุณาเลือกรายชื่อนักเรียนอย่างน้อย 1 คน', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'ยืนยันการจัดห้อง',
+                html: `ต้องการคัดลอกนักเรียน <b>${selectedStudents.length} คน</b> ไปจัดเป็นห้อง <b>${targetRoom}</b> ใช่หรือไม่?<br><span class="text-sm text-slate-500 mt-2 block">(ข้อมูลเก่าของนักเรียนเหล่านี้จะไม่ถูกลบ)</span>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#4f46e5',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'ยืนยันจัดเข้าห้อง'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    showLoading('กำลังย้ายข้อมูล...');
+                    try {
+                        const payload = {
+                            action: 'saveArrangement',
+                            targetRoom: targetRoom,
+                            students: selectedStudents 
+                        };
+                        const res = await fetchAPI(payload);
+                        if(res.status === 'success') {
+                            Swal.fire('สำเร็จ!', res.message, 'success');
+                            loadArrangeData(); 
+                            ui.arrangeTargetRoom.value = ''; 
+                        } else {
+                            Swal.fire('ผิดพลาด', res.message, 'error');
+                        }
+                    } catch(err) {
+                        Swal.fire('ผิดพลาด', 'การเชื่อมต่อล้มเหลว', 'error');
+                    } finally {
+                        hideLoading();
+                    }
+                }
+            });
+        }
+
+        // ==========================================
+        // GUIDE MODAL LOGIC
+        // ==========================================
+        function openGuideModal() {
+            guideModal.container.classList.remove('hidden');
+            void guideModal.container.offsetWidth;
+            guideModal.container.classList.remove('opacity-0');
+            guideModal.content.classList.add('modal-enter');
+        }
+
+        function closeGuideModal() {
+            guideModal.container.classList.add('opacity-0');
+            guideModal.content.classList.remove('modal-enter');
+            setTimeout(() => {
+                guideModal.container.classList.add('hidden');
+            }, 300);
+        }
+
+        // ==========================================
+        // SUMMARY LOGIC
+        // ==========================================
+        function renderSummary() {
+            const roomInfo = getRoomLevelInfo(currentRoom);
+            const isGrad = roomInfo.isGrad;
+            const isM3 = roomInfo.prefix.includes("ม") && roomInfo.num === 3;
+
+            const stats = {
+                promoted: studentsData.filter(s => s.status === 'เลื่อนชั้น').length,
+                gradSame: studentsData.filter(s => s.status === 'สำเร็จการศึกษา' && String(s.subStatus).includes('เดิม')).length,
+                gradDiff: studentsData.filter(s => s.status === 'สำเร็จการศึกษา' && (!String(s.subStatus).includes('เดิม'))).length,
+                retained: studentsData.filter(s => s.status === 'ซ้ำชั้น').length,
+                left: studentsData.filter(s => s.status === 'ย้าย/ลาออก').length,
+                pendingRemove: studentsData.filter(s => s.status === 'รอจำหน่าย').length
+            };
+
+            document.getElementById('statPromoted').textContent = stats.promoted;
+            document.getElementById('statRetained').textContent = stats.retained;
+            document.getElementById('statLeft').textContent = stats.left;
+            document.getElementById('statPendingRemove').textContent = stats.pendingRemove;
+
+            let chartLabels = [];
+            let chartData = [];
+            let chartColors = [];
+
+            document.getElementById('boxPromoted').classList.toggle('hidden', isGrad);
+
+            if (isM3) {
+                stats.gradDiff = studentsData.filter(s => s.status === 'สำเร็จการศึกษา').length;
+                document.getElementById('statGradDiff').textContent = stats.gradDiff;
+
+                document.getElementById('boxGradSame').classList.add('hidden');
+                document.getElementById('boxGradDiff').classList.remove('hidden');
+                document.getElementById('labelGradDiff').textContent = 'สำเร็จการศึกษา (จบหลักสูตร ม.3)';
+
+                chartLabels = ['จบหลักสูตร ม.3', 'ซ้ำชั้น', 'ย้าย/ลาออก', 'รอจำหน่าย'];
+                chartData = [stats.gradDiff, stats.retained, stats.left, stats.pendingRemove];
+                chartColors = ['#d946ef', '#f59e0b', '#f43f5e', '#71717a'];
+            } 
+            else if (isGrad) {
+                document.getElementById('statGradSame').textContent = stats.gradSame;
+                document.getElementById('statGradDiff').textContent = stats.gradDiff;
+
+                document.getElementById('boxGradSame').classList.remove('hidden');
+                document.getElementById('boxGradDiff').classList.remove('hidden');
+                document.getElementById('labelGradSame').textContent = 'สำเร็จการศึกษา (ต่อที่เดิม)';
+                document.getElementById('labelGradDiff').textContent = 'สำเร็จการศึกษา (ย้ายโรงเรียน)';
+
+                chartLabels = ['จบฯ (ต่อที่เดิม)', 'จบฯ (ย้ายที่ใหม่)', 'ซ้ำชั้น', 'ย้าย/ลาออก', 'รอจำหน่าย'];
+                chartData = [stats.gradSame, stats.gradDiff, stats.retained, stats.left, stats.pendingRemove];
+                chartColors = ['#a855f7', '#d946ef', '#f59e0b', '#f43f5e', '#71717a'];
+            } 
+            else {
+                document.getElementById('boxGradSame').classList.add('hidden');
+                document.getElementById('boxGradDiff').classList.add('hidden');
+
+                chartLabels = ['เลื่อนชั้น', 'ซ้ำชั้น', 'ย้าย/ลาออก', 'รอจำหน่าย'];
+                chartData = [stats.promoted, stats.retained, stats.left, stats.pendingRemove];
+                chartColors = ['#3b82f6', '#f59e0b', '#f43f5e', '#71717a'];
+            }
+
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            const isDark = html.classList.contains('dark');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: chartColors,
+                        borderWidth: 0, 
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: isDark ? '#e2e8f0' : '#475569',
+                                padding: 20,
+                                font: {
+                                    family: "'Prompt', sans-serif",
+                                    size: window.innerWidth < 640 ? 12 : 14,
+                                    weight: '600'
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        }
+                    },
+                    cutout: '75%'
+                }
+            });
+        }
+
+        // ==========================================
+        // UTILITIES & NAVIGATION
+        // ==========================================
+        function switchMenu(menuName) {
+            // Update Active Menu Styling
+            document.querySelectorAll('.nav-menu').forEach(el => {
+                el.classList.remove('bg-blue-50', 'text-blue-700', 'dark:bg-blue-900/30', 'dark:text-blue-400', 'active');
+                el.classList.add('text-slate-600', 'dark:text-slate-400');
+            });
+            
+            const activeMenu = document.getElementById(`menu-${menuName}`);
+            if (activeMenu) {
+                activeMenu.classList.remove('text-slate-600', 'dark:text-slate-400');
+                activeMenu.classList.add('bg-blue-50', 'text-blue-700', 'dark:bg-blue-900/30', 'dark:text-blue-400', 'active');
+            }
+
+            // Close mobile sidebar if open
+            ui.sidebar.classList.remove('mobile-open');
+            ui.sidebarOverlay.classList.add('hidden');
+
+            // API calls depending on menu
+            if (menuName === 'overview') {
+                loadOverviewData();
+            } else if (menuName === 'settings') {
+                loadSettingsData();
+            } else if (menuName === 'arrange') {
+                loadArrangeData();
+            }
+
+            showSection(menuName);
+        }
+
+        function showSection(sectionName) {
+            Object.values(sections).forEach(sec => sec.classList.add('hidden'));
+            if(sections[sectionName]) {
+                if (['data', 'overview', 'summary', 'settings', 'arrange', 'note'].includes(sectionName)) {
+                    sections[sectionName].classList.add('flex');
+                    sections[sectionName].classList.remove('hidden');
+                } else {
+                    sections[sectionName].classList.remove('hidden');
+                }
+            }
+        }
+
+        function showLoading(text = 'กำลังประมวลผล...') {
+            ui.loadingText.textContent = text;
+            ui.loadingOverlay.classList.remove('hidden');
+            ui.loadingOverlay.classList.add('flex');
+            setTimeout(() => ui.loadingOverlay.style.opacity = '1', 10);
+        }
+
+        function hideLoading() {
+            ui.loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+                ui.loadingOverlay.classList.add('hidden');
+                ui.loadingOverlay.classList.remove('flex');
+            }, 300);
+        }
+
+        function logout() {
+            Swal.fire({
+                title: 'ยืนยันการออกจากระบบ',
+                text: "คุณต้องการออกจากระบบใช่หรือไม่?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'ออกจากระบบ',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    currentUser = null;
+                    currentRole = null;
+                    currentRoom = null;
+                    studentsData = [];
+                    arrangeData = [];
+                    allRoomsList = [];
+                    
+                    document.getElementById('loginForm').reset();
+                    ui.sidebar.classList.add('hidden');
+                    ui.btnHamburger.classList.add('hidden');
+                    ui.roomSelector.classList.add('hidden');
+                    ui.searchInput.value = '';
+                    
+                    document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+                    
+                    showSection('login');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
