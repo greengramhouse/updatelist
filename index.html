@@ -688,10 +688,8 @@
     <!-- ============================================== -->
     <!-- AI Chat Widget -->
     <!-- ============================================== -->
-    <div id="ai-chat-widget" class="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
-        <!-- Chat Window -->
+<div id="ai-chat-widget" class="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
         <div id="ai-chat-window" class="hidden w-[90vw] sm:w-96 max-h-[70vh] sm:max-h-[500px] h-[500px] bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] border border-brand-100 flex-col mb-4 overflow-hidden transition-all transform origin-bottom-right">
-            <!-- Header -->
             <div class="bg-gradient-to-r from-brand-600 to-indigo-600 p-4 text-white flex justify-between items-center shadow-md">
                 <div class="flex items-center gap-3">
                     <div class="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm">
@@ -710,9 +708,7 @@
                 </button>
             </div>
             
-            <!-- Messages Area -->
             <div id="ai-chat-messages" class="flex-1 p-4 overflow-y-auto bg-[#f8fafc] flex flex-col gap-4 custom-scrollbar">
-                <!-- Default AI Greeting -->
                 <div class="self-start flex flex-col gap-1 w-full max-w-[85%]">
                     <div class="flex items-center gap-2 ml-1">
                         <div class="w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center">
@@ -726,7 +722,6 @@
                 </div>
             </div>
             
-            <!-- Input Area -->
             <div class="p-3 sm:p-4 bg-white border-t border-gray-100">
                 <div class="relative flex items-center">
                     <input type="text" id="ai-chat-input" placeholder="พิมพ์คำถามของคุณที่นี่..." class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-full focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 block px-4 py-3 pr-12 transition-all outline-none" onkeypress="handleChatKeyPress(event)">
@@ -737,11 +732,17 @@
             </div>
         </div>
         
-        <!-- Toggle Button -->
-        <button onclick="toggleChat()" id="ai-toggle-btn" class="w-14 h-14 bg-gradient-to-r from-brand-600 to-indigo-600 rounded-full shadow-lg shadow-brand-500/40 flex items-center justify-center text-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative group">
-            <span class="absolute inset-0 rounded-full border-2 border-brand-400 animate-ping opacity-50" id="ai-pulse"></span>
-            <svg class="w-7 h-7 transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-        </button>
+        <div class="flex flex-col items-center justify-center relative mt-2">
+            <button onclick="toggleChat()" id="ai-toggle-btn" class="w-14 h-14 bg-gradient-to-r from-brand-600 to-indigo-600 rounded-full shadow-lg shadow-brand-500/40 flex items-center justify-center text-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative group z-10">
+                <span class="absolute inset-0 rounded-full border-2 border-brand-400 animate-ping opacity-50" id="ai-pulse"></span>
+                <svg class="w-7 h-7 transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+            </button>
+            
+            <div id="ai-chat-label" onclick="toggleChat()" class="mt-3 cursor-pointer bg-white px-3 py-1.5 rounded-full shadow-md border border-gray-100 flex items-center gap-1.5 hover:-translate-y-0.5 transition-transform duration-300 whitespace-nowrap">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                <span class="text-[12px] font-semibold text-gray-700">คลิกคุยกับเลขา AI</span>
+            </div>
+        </div>
     </div>
 
     <!-- ============================================== -->
