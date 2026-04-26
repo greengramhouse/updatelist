@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>student list update</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-dark: #3730a3;
+            --accent: #06b6d4;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface2: #273548;
+            --border: rgba(99, 102, 241, 0.18);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --header-h: 88px;   /* ความสูง header - ใช้ใน sticky positioning */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e40af 100%);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 32px rgba(79, 70, 229, 0.25);
+        }
+
+        .header-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-wrap {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            backdrop-filter: blur(8px);
+        }
+
+        .logo-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .header-title h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.02em;
+        }
+
+        .header-title p {
+            font-size: 0.82rem;
+            color: #a5b4fc;
+            margin-top: 2px;
+        }
+
+        .header-badge {
+            margin-left: auto;
+            background: rgba(6, 182, 212, 0.15);
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            color: #67e8f9;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 99px;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== MAIN ===== */
+        main {
+            flex: 1;
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 28px 20px 72px; /* 72px = พื้นที่กันไม่ให้ตารางซ่อนอยู่ใต้ fixed footer */
+        }
+
+        /* ===== FILTER CARD ===== */
+        .filter-card {
+            background: linear-gradient(135deg, rgba(20, 30, 50, 0.98), rgba(30, 45, 65, 0.97));
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            /* Sticky: ติดอยู่ใต้ header เมื่อเลื่อน + เว้นระยะ 8px */
+            position: sticky;
+            top: calc(var(--header-h) + 8px);
+            z-index: 80;
+        }
+
+        .filter-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Sarabun', sans-serif;
+            color: var(--accent);
+            gap: 10px;
+        }
+
+        .filter-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .filter-toggle-label::before {
+            content: '';
+            display: inline-block;
+            width: 3px;
+            height: 14px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .filter-chevron {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .filter-card.is-open .filter-chevron {
+            transform: rotate(180deg);
+        }
+
+        .filter-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease, padding 0.35s ease;
+            padding: 0 20px;
+        }
+
+        .filter-card.is-open .filter-body {
+            max-height: 200px;
+            padding: 4px 20px 20px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 640px) {
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 7px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6366f1;
+            pointer-events: none;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 11px 14px 11px 40px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1.5px solid rgba(99, 102, 241, 0.22);
+            border-radius: 11px;
+            color: var(--text);
+            font-family: 'Sarabun', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-select {
+            padding-left: 40px;
+            cursor: pointer;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            border-color: var(--primary-light);
+            background: rgba(79, 70, 229, 0.08);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+        }
+
+        .form-input::placeholder {
+            color: #475569;
+        }
+
+        .form-select option {
+            background: #1e293b;
+        }
+
+        /* ===== TABLE CARD ===== */
+        .table-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(39, 53, 72, 0.9));
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+        }
+
+        .table-header {
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            background: rgba(79, 70, 229, 0.07);
+        }
+
+        .table-header-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #a5b4fc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-header-title::before {
+            content: '';
+            display: inline-block;
+            width: 3px;
+            height: 14px;
+            background: #a5b4fc;
+            border-radius: 2px;
+        }
+
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--accent);
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            border-radius: 8px;
+            padding: 6px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: rgba(6, 182, 212, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .refresh-btn svg {
+            transition: transform 0.4s;
+        }
+
+        .refresh-btn:hover svg {
+            transform: rotate(180deg);
+        }
+
+        /* Table */
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        .table-scroll::-webkit-scrollbar {
+            height: 5px;
+        }
+
+        .table-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 99px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        thead tr {
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        th {
+            padding: 13px 18px;
+            text-align: left;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #818cf8;
+            white-space: nowrap;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            /* Sticky column headers */
+            position: sticky;
+            top: 0;
+            background: #131d35;
+            z-index: 5;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(99, 102, 241, 0.08);
+            transition: background 0.18s, transform 0.18s;
+            animation: fadeInRow 0.3s ease both;
+        }
+
+        tbody tr:nth-child(even) {
+            background: rgba(79, 70, 229, 0.04);
+        }
+
+        tbody tr:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateX(2px);
+        }
+
+        @keyframes fadeInRow {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        td {
+            padding: 13px 18px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        td.td-name {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        td.td-id {
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.88rem;
+        }
+
+        td.td-no {
+            color: #64748b;
+            font-size: 0.82rem;
+            text-align: center;
+        }
+
+        td.td-citizen {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #7dd3fc;
+            letter-spacing: 0.04em;
+        }
+
+        .classroom-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(99, 102, 241, 0.18);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        /* ===== STATES ===== */
+        .loading-state,
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 64px 20px;
+            gap: 14px;
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid rgba(99, 102, 241, 0.2);
+            border-top-color: var(--primary-light);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-state p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .empty-state svg {
+            opacity: 0.25;
+        }
+
+        .empty-state p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .empty-state p.sub {
+            font-size: 0.82rem;
+            color: #475569;
+        }
+
+        /* ===== TABLE FOOTER ===== */
+        .table-footer {
+            padding: 13px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(99, 102, 241, 0.13);
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        .record-count {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .record-count strong {
+            color: var(--accent);
+        }
+
+        /* ===== PAGINATION ===== */
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            min-width: 32px;
+            height: 32px;
+            padding: 0 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: 'Sarabun', sans-serif;
+            background: rgba(99, 102, 241, 0.08);
+            color: var(--text-muted);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            cursor: pointer;
+            transition: all 0.18s;
+            user-select: none;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--text);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 12px rgba(79, 70, 229, 0.45);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-size-select {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(99, 102, 241, 0.22);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-family: 'Sarabun', sans-serif;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .page-size-select:focus {
+            border-color: var(--primary-light);
+        }
+
+        @media (max-width: 640px) {
+            .table-footer {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+
+        /* ===== PAGE FOOTER ===== */
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 90;
+            text-align: center;
+            padding: 10px 20px;
+            font-size: 0.78rem;
+            color: #475569;
+            background: rgba(10, 16, 35, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        footer span {
+            color: #64748b;
+        }
+
+        /* ===== MOBILE EXPAND ROW ===== */
+        .detail-row td {
+            padding: 0 !important;
+            border-bottom: none !important;
+        }
+
+        .detail-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 0 12px;
+            background: rgba(79, 70, 229, 0.07);
+            border-top: 1px dashed rgba(99, 102, 241, 0.2);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.12);
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .detail-row.is-open .detail-content {
+            max-height: 120px;
+            padding: 10px 12px 14px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .detail-label {
+            font-size: 0.67rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6366f1;
+        }
+
+        .detail-value {
+            font-size: 0.82rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .detail-value.mono {
+            font-family: monospace;
+            color: #7dd3fc;
+            font-size: 0.78rem;
+            letter-spacing: 0.03em;
+        }
+
+        /* ลูกศรแสดง/ซ่อน - มือถือเท่านั้น */
+        @media (max-width: 640px) {
+            tbody tr.data-row { cursor: pointer; }
+            tbody tr.data-row.is-expanded { background: rgba(79,70,229,0.1) !important; }
+            tbody tr.data-row td.td-name::after {
+                content: " ▾";
+                color: #6366f1;
+                font-size: 0.7rem;
+                transition: transform 0.25s;
+                display: inline-block;
+            }
+            tbody tr.data-row.is-expanded td.td-name::after {
+                transform: rotate(180deg);
+            }
+        }
+
+        @media (min-width: 641px) {
+            .detail-row { display: none !important; }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 640px) {
+            .hide-mobile {
+                display: none !important;
+            }
+
+            /* ปรับความกว้างส่วนอื่นให้พอดีมือถือ */
+            .header-inner {
+                padding: 12px 16px;
+            }
+
+            .header-title h1 {
+                font-size: 1.1rem;
+            }
+
+            .header-badge {
+                display: none;
+            }
+
+            main {
+                padding: 16px 12px 72px;
+            }
+
+            /* header เล็กลงบนมือถือ => ปรับ sticky top ด้วย (header ~64px + gap 8px) */
+            :root { --header-h: 64px; }
+
+            /* ปรับตารางให้พอดีมือถือ */
+            table {
+                min-width: 100% !important;
+            }
+
+            th,
+            td {
+                padding: 10px 8px !important;
+                font-size: 0.82rem !important;
+                white-space: normal !important; /* ยอมให้ข้อความขึ้นบรรทัดใหม่ได้ */
+            }
+
+            td.td-name {
+                min-width: 120px; /* ให้คอลัมน์ชื่อมีพื้นที่พอสมควร */
+            }
+
+            td.td-id {
+                font-size: 0.8rem !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="header-inner">
+            <div class="logo-wrap">
+                <img src="https://res.cloudinary.com/gukkghu/image/upload/v1646575846/gukkghu/%E0%B8%87%E0%B8%B2%E0%B8%99%E0%B8%AD%E0%B8%AD%E0%B8%81%E0%B9%81%E0%B8%9A%E0%B8%9A%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B9%84%E0%B8%A1%E0%B9%88%E0%B8%A1%E0%B8%B5%E0%B8%8A%E0%B8%B7%E0%B9%88%E0%B8%AD_aytvpq.png"
+                    alt="โลโก้โรงเรียน">
+            </div>
+            <div class="header-title">
+                <h1>ระบบฐานข้อมูลนักเรียน</h1>
+                <p>ค้นหาและตรวจสอบข้อมูลนักเรียนประจำชั้น</p>
+            </div>
+            <div class="header-badge">LIST STUDENT DATA | Update 26-04-2569</div>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main>
+
+        <!-- Filter -->
+        <div class="filter-card" id="filterCard">
+            <button class="filter-toggle" onclick="toggleFilter()" aria-expanded="false" aria-controls="filterBody">
+                <span class="filter-toggle-label">ตัวกรองค้นหา</span>
+                <svg class="filter-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div class="filter-body" id="filterBody">
+                <div class="filter-grid">
+                    <div class="form-group" style="grid-column: span 1;">
+                        <label for="searchInput">ค้นหาชื่อ หรือ นามสกุล</label>
+                        <div class="input-wrap">
+                            <svg class="input-icon" width="16" height="16" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+                            </svg>
+                            <input type="text" id="searchInput" class="form-input" placeholder="พิมพ์ชื่อ หรือ นามสกุล...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="classSelect">เลือกห้องเรียน</label>
+                        <div class="input-wrap">
+                            <svg class="input-icon" width="16" height="16" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M3 12h18M3 17h18" />
+                            </svg>
+                            <select id="classSelect" class="form-select">
+                                <option value="">— แสดงทุกห้องเรียน —</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="table-card">
+            <div class="table-header">
+                <div class="table-header-title">รายชื่อนักเรียน</div>
+                <button class="refresh-btn" onclick="fetchData()">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    รีเฟรช
+                </button>
+            </div>
+
+            <!-- Loading -->
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p>กำลังโหลดข้อมูล กรุณารอสักครู่...</p>
+            </div>
+
+            <!-- Table -->
+            <div id="tableWrapper" class="table-scroll hidden">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:52px;text-align:center">#</th>
+                            <th class="hide-mobile">ห้องเรียน</th>
+                            <th>รหัสนักเรียน</th>
+                            <th class="hide-mobile">เลขประจำตัวประชาชน</th>
+                            <th>ชื่อ - นามสกุล</th>
+                            <th class="hide-mobile">วันเกิด</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Empty -->
+            <div id="emptyState" class="empty-state hidden">
+                <svg width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="#818cf8" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p>ไม่พบข้อมูลที่ค้นหา</p>
+                <p class="sub">ลองเปลี่ยนคำค้นหา หรือเลือกห้องเรียนอื่น</p>
+            </div>
+
+            <!-- Footer -->
+            <div class="table-footer">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <span class="record-count" id="recordCount">แสดง <strong>0</strong> รายการ</span>
+                    <select class="page-size-select" id="pageSizeSelect" onchange="changePageSize()">
+                        <option value="20">20 / หน้า</option>
+                        <option value="50">50 / หน้า</option>
+                        <option value="100">100 / หน้า</option>
+                    </select>
+                </div>
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        &copy; 2026 Student list update. All rights reserved. &nbsp;|&nbsp; <span>Thaigham-School Development</span>
+    </footer>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwGKkKFJhysM4U02sUEd-v01wTCd7pBiHxFcTi7gPNCWybgT1xT6Md3e6bZyWry2eZx/exec';
+        let allStudentData = [];
+
+        const searchInput = document.getElementById('searchInput');
+        const classSelect = document.getElementById('classSelect');
+        const tableBody = document.getElementById('tableBody');
+        const tableWrapper = document.getElementById('tableWrapper');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const recordCount = document.getElementById('recordCount');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData();
+            searchInput.addEventListener('input', filterData);
+            classSelect.addEventListener('change', filterData);
+        });
+
+        function toggleFilter() {
+            const card = document.getElementById('filterCard');
+            const btn  = card.querySelector('.filter-toggle');
+            const isOpen = card.classList.toggle('is-open');
+            btn.setAttribute('aria-expanded', isOpen);
+        }
+
+        async function fetchData() {
+            showLoading(true);
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                allStudentData = data;
+                setupDropdown(data);
+                renderTable(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณาตรวจสอบ URL หรือลองใหม่อีกครั้ง');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function setupDropdown(data) {
+            const classrooms = [...new Set(data.map(item => item.classroom))].sort();
+            classSelect.innerHTML = '<option value="">— แสดงทุกห้องเรียน —</option>';
+            classrooms.forEach(room => {
+                const opt = document.createElement('option');
+                opt.value = room;
+                opt.textContent = room;
+                classSelect.appendChild(opt);
+            });
+        }
+
+        function filterData() {
+            const term = searchInput.value.toLowerCase().trim();
+            const cls = classSelect.value;
+            const filtered = allStudentData.filter(s => {
+                const name = `${s.first_name} ${s.last_name}`.toLowerCase();
+                return name.includes(term) && (cls === '' || s.classroom === cls);
+            });
+            renderTable(filtered);
+        }
+
+        function formatThaiDate(dateStr) {
+            if (!dateStr) return "-";
+            try {
+                // Try to parse the date
+                let date = new Date(dateStr);
+                let year, month, day;
+
+                if (isNaN(date.getTime())) {
+                    // Manual parse for formats like 2564-04-12
+                    const parts = dateStr.split('T')[0].split(/[-/]/);
+                    if (parts.length >= 3) {
+                        year = parseInt(parts[0]);
+                        month = parseInt(parts[1]) - 1;
+                        day = parseInt(parts[2]);
+                    } else {
+                        return dateStr;
+                    }
+                } else {
+                    year = date.getFullYear();
+                    month = date.getMonth();
+                    day = date.getDate();
+                    // Convert to BE if it looks like CE
+                    if (year < 2400) year += 543;
+                }
+
+                const months = [
+                    "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+                    "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
+                ];
+
+                return `${day} ${months[month]} ${year}`;
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        let currentPage = 1;
+        let pageSize = 20;
+        let currentData = [];
+
+        function renderTable(data) {
+            currentData = data;
+            currentPage = 1;
+            renderPage();
+        }
+
+        function renderPage() {
+            tableBody.innerHTML = '';
+
+            if (currentData.length === 0) {
+                tableWrapper.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                recordCount.innerHTML = 'แสดง <strong>0</strong> รายการ';
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            tableWrapper.classList.remove('hidden');
+
+            const totalPages = Math.ceil(currentData.length / pageSize);
+            const start = (currentPage - 1) * pageSize;
+            const end   = Math.min(start + pageSize, currentData.length);
+            const pageData = currentData.slice(start, end);
+
+            recordCount.innerHTML = `แสดง <strong>${start + 1}–${end}</strong> จาก <strong>${currentData.length}</strong> รายการ`;
+
+            pageData.forEach((s, i) => {
+                const fullName = `${s.prefix || ''}${s.first_name} ${s.last_name}`;
+                const globalIndex = start + i + 1;
+                const rowId = `row-${start}-${i}`;
+
+                // --- Main row ---
+                const row = document.createElement('tr');
+                row.className = 'data-row';
+                row.style.animationDelay = `${Math.min(i * 20, 300)}ms`;
+                row.innerHTML = `
+                    <td class="td-no">${s.no || globalIndex}</td>
+                    <td class="hide-mobile"><span class="classroom-badge">${s.classroom}</span></td>
+                    <td class="td-id">${s.student_id}</td>
+                    <td class="hide-mobile"><span class="td-citizen">${s.citizen_id}</span></td>
+                    <td class="td-name">${fullName}</td>
+                    <td class="hide-mobile">${formatThaiDate(s.birth_date)}</td>
+                `;
+
+                // --- Detail row (mobile only) ---
+                const detailRow = document.createElement('tr');
+                detailRow.className = 'detail-row';
+                const colspan = 3; // # visible columns on mobile (#, student_id, name)
+                detailRow.innerHTML = `
+                    <td colspan="${colspan}">
+                        <div class="detail-content">
+                            <div class="detail-item">
+                                <span class="detail-label">ห้องเรียน</span>
+                                <span class="detail-value">${s.classroom}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">วันเกิด</span>
+                                <span class="detail-value">${formatThaiDate(s.birth_date)}</span>
+                            </div>
+                            <div class="detail-item" style="grid-column: span 2;">
+                                <span class="detail-label">เลขบัตรประชาชน</span>
+                                <span class="detail-value mono">${s.citizen_id}</span>
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                // Toggle on click (mobile)
+                row.addEventListener('click', () => {
+                    const isMobile = window.innerWidth <= 640;
+                    if (!isMobile) return;
+                    const isOpen = detailRow.classList.toggle('is-open');
+                    row.classList.toggle('is-expanded', isOpen);
+                });
+
+                tableBody.appendChild(row);
+                tableBody.appendChild(detailRow);
+            });
+
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            const pag = document.getElementById('pagination');
+            pag.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            const mkBtn = (label, page, disabled = false, active = false) => {
+                const btn = document.createElement('button');
+                btn.className = 'page-btn' + (active ? ' active' : '');
+                btn.innerHTML = label;
+                btn.disabled = disabled;
+                if (!disabled) btn.onclick = () => goToPage(page);
+                return btn;
+            };
+
+            // Prev
+            pag.appendChild(mkBtn('&#8592;', currentPage - 1, currentPage === 1));
+
+            // Pages with ellipsis
+            const range = [];
+            for (let p = 1; p <= totalPages; p++) {
+                if (p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)) {
+                    range.push(p);
+                } else if (range[range.length - 1] !== '...') {
+                    range.push('...');
+                }
+            }
+
+            range.forEach(p => {
+                if (p === '...') {
+                    const el = document.createElement('span');
+                    el.textContent = '…';
+                    el.style.cssText = 'color:#475569;padding:0 4px;font-size:0.82rem;';
+                    pag.appendChild(el);
+                } else {
+                    pag.appendChild(mkBtn(p, p, false, p === currentPage));
+                }
+            });
+
+            // Next
+            pag.appendChild(mkBtn('&#8594;', currentPage + 1, currentPage === totalPages));
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderPage();
+            // Scroll table into view smoothly
+            document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function changePageSize() {
+            pageSize = parseInt(document.getElementById('pageSizeSelect').value);
+            currentPage = 1;
+            renderPage();
+        }
+
+        function showLoading(on) {
+            if (on) {
+                loadingState.classList.remove('hidden');
+                tableWrapper.classList.add('hidden');
+                emptyState.classList.add('hidden');
+            } else {
+                loadingState.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+
+</html>
