@@ -13,6 +13,7 @@
             --primary-light: #6366f1;
             --primary-dark: #3730a3;
             --accent: #06b6d4;
+            --accent-purple: #a855f7;
             --bg: #0f172a;
             --surface: #1e293b;
             --surface2: #273548;
@@ -20,7 +21,8 @@
             --text: #e2e8f0;
             --text-muted: #94a3b8;
             --success: #10b981;
-            --header-h: 88px;   /* ความสูง header - ใช้ใน sticky positioning */
+            --header-h: 88px;
+            /* ความสูง header - ใช้ใน sticky positioning */
         }
 
         * {
@@ -109,7 +111,7 @@
             max-width: 1280px;
             width: 100%;
             margin: 0 auto;
-            padding: 28px 20px 72px; /* 72px = พื้นที่กันไม่ให้ตารางซ่อนอยู่ใต้ fixed footer */
+            padding: 28px 20px 72px;
         }
 
         /* ===== FILTER CARD ===== */
@@ -122,7 +124,6 @@
             -webkit-backdrop-filter: blur(16px);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             overflow: hidden;
-            /* Sticky: ติดอยู่ใต้ header เมื่อเลื่อน + เว้นระยะ 8px */
             position: sticky;
             top: calc(var(--header-h) + 8px);
             z-index: 80;
@@ -180,7 +181,7 @@
         }
 
         .filter-card.is-open .filter-body {
-            max-height: 200px;
+            max-height: 320px;
             padding: 4px 20px 20px;
         }
 
@@ -267,6 +268,8 @@
             justify-content: space-between;
             border-bottom: 1px solid rgba(99, 102, 241, 0.15);
             background: rgba(79, 70, 229, 0.07);
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .table-header-title {
@@ -289,20 +292,28 @@
             border-radius: 2px;
         }
 
-        .refresh-btn {
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 0.82rem;
             font-weight: 600;
-            color: var(--accent);
-            background: rgba(6, 182, 212, 0.1);
-            border: 1px solid rgba(6, 182, 212, 0.25);
             border-radius: 8px;
             padding: 6px 14px;
             cursor: pointer;
             transition: all 0.2s;
             font-family: 'Sarabun', sans-serif;
+        }
+
+        .refresh-btn {
+            color: var(--accent);
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.25);
         }
 
         .refresh-btn:hover {
@@ -317,6 +328,18 @@
 
         .refresh-btn:hover svg {
             transform: rotate(180deg);
+        }
+
+        .stat-btn {
+            color: var(--accent-purple);
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+        }
+
+        .stat-btn:hover {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: rgba(168, 85, 247, 0.5);
+            transform: translateY(-1px);
         }
 
         /* Table */
@@ -357,7 +380,6 @@
             color: #818cf8;
             white-space: nowrap;
             border-bottom: 1px solid rgba(99, 102, 241, 0.2);
-            /* Sticky column headers */
             position: sticky;
             top: 0;
             background: #131d35;
@@ -422,6 +444,11 @@
             letter-spacing: 0.04em;
         }
 
+        td.td-remark {
+            font-size: 0.8rem;
+            color: var(--accent-purple);
+        }
+
         .classroom-badge {
             display: inline-block;
             padding: 3px 10px;
@@ -459,19 +486,15 @@
             }
         }
 
-        .loading-state p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        .empty-state svg {
-            opacity: 0.25;
-        }
-
+        .loading-state p,
         .empty-state p {
             color: var(--text-muted);
             font-size: 0.95rem;
             text-align: center;
+        }
+
+        .empty-state svg {
+            opacity: 0.25;
         }
 
         .empty-state p.sub {
@@ -555,16 +578,267 @@
             outline: none;
         }
 
-        .page-size-select:focus {
-            border-color: var(--primary-light);
+        /* ===== MODAL (Popup สรุปสถิติ) ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 15, 25, 0.8);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 20px;
         }
 
-        @media (max-width: 640px) {
-            .table-footer {
-                flex-direction: column;
-                gap: 10px;
-                align-items: flex-start;
-            }
+        .modal-overlay.is-active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(39, 53, 72, 0.95));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-overlay.is-active .modal-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-modal-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-modal-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .modal-body {
+            padding: 24px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 99px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateX(3px);
+        }
+
+        /* สถานะ: กำลังศึกษา / ปกติ — สีเขียว */
+        .stat-item.color-green {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.25);
+        }
+
+        .stat-item.color-green .stat-dot {
+            background: #10b981;
+        }
+
+        .stat-item.color-green .stat-value {
+            color: #6ee7b7;
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        /* สถานะ: ย้ายออก / ย้าย — สีฟ้า */
+        .stat-item.color-blue {
+            background: rgba(59, 130, 246, 0.08);
+            border-color: rgba(59, 130, 246, 0.25);
+        }
+
+        .stat-item.color-blue .stat-dot {
+            background: #3b82f6;
+        }
+
+        .stat-item.color-blue .stat-value {
+            color: #93c5fd;
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        /* สถานะ: ออกกลางคัน / ออก — สีส้ม */
+        .stat-item.color-orange {
+            background: rgba(249, 115, 22, 0.08);
+            border-color: rgba(249, 115, 22, 0.25);
+        }
+
+        .stat-item.color-orange .stat-dot {
+            background: #f97316;
+        }
+
+        .stat-item.color-orange .stat-value {
+            color: #fdba74;
+            background: rgba(249, 115, 22, 0.15);
+        }
+
+        /* สถานะ: จบการศึกษา — สีทอง */
+        .stat-item.color-yellow {
+            background: rgba(234, 179, 8, 0.08);
+            border-color: rgba(234, 179, 8, 0.25);
+        }
+
+        .stat-item.color-yellow .stat-dot {
+            background: #eab308;
+        }
+
+        .stat-item.color-yellow .stat-value {
+            color: #fde047;
+            background: rgba(234, 179, 8, 0.15);
+        }
+
+        /* สถานะ: พักการเรียน — สีม่วงชมพู */
+        .stat-item.color-pink {
+            background: rgba(236, 72, 153, 0.08);
+            border-color: rgba(236, 72, 153, 0.25);
+        }
+
+        .stat-item.color-pink .stat-dot {
+            background: #ec4899;
+        }
+
+        .stat-item.color-pink .stat-value {
+            color: #f9a8d4;
+            background: rgba(236, 72, 153, 0.15);
+        }
+
+        /* สถานะ: เสียชีวิต — สีเทา */
+        .stat-item.color-gray {
+            background: rgba(100, 116, 139, 0.08);
+            border-color: rgba(100, 116, 139, 0.25);
+        }
+
+        .stat-item.color-gray .stat-dot {
+            background: #64748b;
+        }
+
+        .stat-item.color-gray .stat-value {
+            color: #94a3b8;
+            background: rgba(100, 116, 139, 0.15);
+        }
+
+        /* สถานะ: ไม่ระบุ / อื่น ๆ — สีฟ้าอมเขียว (default) */
+        .stat-item.color-cyan {
+            background: rgba(6, 182, 212, 0.08);
+            border-color: rgba(6, 182, 212, 0.2);
+        }
+
+        .stat-item.color-cyan .stat-dot {
+            background: var(--accent);
+        }
+
+        .stat-item.color-cyan .stat-value {
+            color: var(--accent);
+            background: rgba(6, 182, 212, 0.15);
+        }
+
+        /* แถวรวมทั้งหมด */
+        .stat-item.total-row {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.45);
+            margin-top: 16px;
+        }
+
+        .stat-item.total-row .stat-dot {
+            background: #818cf8;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--text);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .stat-item.total-row .stat-label {
+            color: #a5b4fc;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+            background: rgba(6, 182, 212, 0.15);
+            padding: 4px 12px;
+            border-radius: 8px;
+        }
+
+        .stat-item.total-row .stat-value {
+            color: #fff;
+            background: var(--primary);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
         }
 
         /* ===== PAGE FOOTER ===== */
@@ -608,7 +882,7 @@
         }
 
         .detail-row.is-open .detail-content {
-            max-height: 120px;
+            max-height: 180px;
             padding: 10px 12px 14px;
         }
 
@@ -639,10 +913,15 @@
             letter-spacing: 0.03em;
         }
 
-        /* ลูกศรแสดง/ซ่อน - มือถือเท่านั้น */
         @media (max-width: 640px) {
-            tbody tr.data-row { cursor: pointer; }
-            tbody tr.data-row.is-expanded { background: rgba(79,70,229,0.1) !important; }
+            tbody tr.data-row {
+                cursor: pointer;
+            }
+
+            tbody tr.data-row.is-expanded {
+                background: rgba(79, 70, 229, 0.1) !important;
+            }
+
             tbody tr.data-row td.td-name::after {
                 content: " ▾";
                 color: #6366f1;
@@ -650,25 +929,36 @@
                 transition: transform 0.25s;
                 display: inline-block;
             }
+
             tbody tr.data-row.is-expanded td.td-name::after {
                 transform: rotate(180deg);
             }
-        }
 
-        @media (min-width: 641px) {
-            .detail-row { display: none !important; }
-        }
+            .table-header {
+                justify-content: center;
+            }
 
-        .hidden {
-            display: none !important;
-        }
+            .action-buttons {
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 8px;
+            }
 
-        @media (max-width: 640px) {
+            .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .table-footer {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
             .hide-mobile {
                 display: none !important;
             }
 
-            /* ปรับความกว้างส่วนอื่นให้พอดีมือถือ */
             .header-inner {
                 padding: 12px 16px;
             }
@@ -685,10 +975,10 @@
                 padding: 16px 12px 72px;
             }
 
-            /* header เล็กลงบนมือถือ => ปรับ sticky top ด้วย (header ~64px + gap 8px) */
-            :root { --header-h: 64px; }
+            :root {
+                --header-h: 64px;
+            }
 
-            /* ปรับตารางให้พอดีมือถือ */
             table {
                 min-width: 100% !important;
             }
@@ -697,16 +987,26 @@
             td {
                 padding: 10px 8px !important;
                 font-size: 0.82rem !important;
-                white-space: normal !important; /* ยอมให้ข้อความขึ้นบรรทัดใหม่ได้ */
+                white-space: normal !important;
             }
 
             td.td-name {
-                min-width: 120px; /* ให้คอลัมน์ชื่อมีพื้นที่พอสมควร */
+                min-width: 120px;
             }
 
             td.td-id {
                 font-size: 0.8rem !important;
             }
+        }
+
+        @media (min-width: 641px) {
+            .detail-row {
+                display: none !important;
+            }
+        }
+
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -724,7 +1024,7 @@
                 <h1>ระบบฐานข้อมูลนักเรียน</h1>
                 <p>ค้นหาและตรวจสอบข้อมูลนักเรียนประจำชั้น</p>
             </div>
-            <div class="header-badge">LIST STUDENT DATA | Update 26-04-2569</div>
+            <div class="header-badge">LIST STUDENT DATA | Update 28-04-2569</div>
         </div>
     </header>
 
@@ -740,8 +1040,8 @@
                 </svg>
             </button>
             <div class="filter-body" id="filterBody">
-                <div class="filter-grid">
-                    <div class="form-group" style="grid-column: span 1;">
+                <div class="filter-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="form-group">
                         <label for="searchInput">ค้นหาชื่อ หรือ นามสกุล</label>
                         <div class="input-wrap">
                             <svg class="input-icon" width="16" height="16" fill="none" viewBox="0 0 24 24"
@@ -749,7 +1049,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
                             </svg>
-                            <input type="text" id="searchInput" class="form-input" placeholder="พิมพ์ชื่อ หรือ นามสกุล...">
+                            <input type="text" id="searchInput" class="form-input"
+                                placeholder="พิมพ์ชื่อ หรือ นามสกุล...">
                         </div>
                     </div>
                     <div class="form-group">
@@ -764,6 +1065,19 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label for="statusSelect">เลือกสถานะ</label>
+                        <div class="input-wrap">
+                            <svg class="input-icon" width="16" height="16" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <select id="statusSelect" class="form-select">
+                                <option value="">— แสดงทุกสถานะ —</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -772,14 +1086,26 @@
         <div class="table-card">
             <div class="table-header">
                 <div class="table-header-title">รายชื่อนักเรียน</div>
-                <button class="refresh-btn" onclick="fetchData()">
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    รีเฟรช
-                </button>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn stat-btn" onclick="openStatModal()">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        ดูสรุปข้อมูล
+                    </button>
+                    <button class="btn refresh-btn" onclick="fetchData()">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        รีเฟรช
+                    </button>
+                </div>
             </div>
 
             <!-- Loading -->
@@ -799,6 +1125,7 @@
                             <th class="hide-mobile">เลขประจำตัวประชาชน</th>
                             <th>ชื่อ - นามสกุล</th>
                             <th class="hide-mobile">วันเกิด</th>
+                            <th class="hide-mobile">สถานะ</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -831,6 +1158,35 @@
 
     </main>
 
+    <!-- Modal สรุปสถิติ -->
+    <div class="modal-overlay" id="statModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                    </svg>
+                    สรุปสถานะนักเรียนทั้งหมด
+                </div>
+                <button class="close-modal-btn" onclick="closeStatModal()">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="statModalBody">
+                <div class="loading-state" style="padding: 30px;">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px; font-size:0.85rem">กำลังดึงข้อมูลสถิติ...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer>
         &copy; 2026 Student list update. All rights reserved. &nbsp;|&nbsp; <span>Thaigham-School Development</span>
     </footer>
@@ -851,19 +1207,22 @@
             fetchData();
             searchInput.addEventListener('input', filterData);
             classSelect.addEventListener('change', filterData);
+            statusSelect.addEventListener('change', filterData);
         });
 
         function toggleFilter() {
             const card = document.getElementById('filterCard');
-            const btn  = card.querySelector('.filter-toggle');
+            const btn = card.querySelector('.filter-toggle');
             const isOpen = card.classList.toggle('is-open');
             btn.setAttribute('aria-expanded', isOpen);
         }
 
+        // ดึงข้อมูลนักเรียนทั้งหมด
         async function fetchData() {
             showLoading(true);
             try {
-                const response = await fetch(API_URL);
+                // ระบุ parameter ว่าขอดึงข้อมูลนักเรียน
+                const response = await fetch(API_URL + '?action=getStudents');
                 const data = await response.json();
                 allStudentData = data;
                 setupDropdown(data);
@@ -876,7 +1235,81 @@
             }
         }
 
+        // ==========================================
+        // ระบบ Modal สำหรับแสดงสถิติ (สรุปข้อมูล)
+        // ==========================================
+        const statModal = document.getElementById('statModal');
+        const statModalBody = document.getElementById('statModalBody');
+        const statusSelect = document.getElementById('statusSelect');
+
+        function openStatModal() {
+            statModal.classList.add('is-active');
+            fetchStatData();
+        }
+
+        function closeStatModal() {
+            statModal.classList.remove('is-active');
+        }
+
+        // ปิด Modal เมื่อคลิกพื้นที่ว่างด้านนอก
+        statModal.addEventListener('click', (e) => {
+            if (e.target === statModal) closeStatModal();
+        });
+
+        async function fetchStatData() {
+            // แสดง Loading ใน Modal
+            statModalBody.innerHTML = `
+                <div class="loading-state" style="padding: 30px;">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px; font-size:0.85rem">กำลังดึงข้อมูลสถิติ...</p>
+                </div>
+            `;
+
+            try {
+                // ระบุ parameter ว่าขอดึงข้อมูลสถิติ
+                const response = await fetch(API_URL + '?action=getStats');
+                const stats = await response.json();
+
+                if (stats.error || stats.length === 0) {
+                    statModalBody.innerHTML = `<div style="text-align:center; color:#94a3b8; padding: 20px;">ไม่พบข้อมูลสถิติ หรือยังไม่ได้รันการคำนวณในชีต</div>`;
+                    return;
+                }
+
+                // กำหนดสีแบบ index-based (ใช้ได้แน่นอน ไม่ขึ้นกับชื่อสถานะ)
+                const COLOR_PALETTE = [
+                    'color-green',
+                    'color-blue',
+                    'color-orange',
+                    'color-yellow',
+                    'color-pink',
+                    'color-cyan',
+                    'color-gray',
+                ];
+
+                let html = '';
+                let colorIdx = 0;
+                stats.forEach(item => {
+                    const isTotal = item.status.includes('รวม');
+                    const colorClass = isTotal ? '' : COLOR_PALETTE[colorIdx % COLOR_PALETTE.length];
+                    if (!isTotal) colorIdx++;
+                    html += `
+                        <div class="stat-item ${isTotal ? 'total-row' : colorClass}">
+                            <span class="stat-label"><span class="stat-dot"></span>${item.status}</span>
+                            <span class="stat-value">${item.count}</span>
+                        </div>
+                    `;
+                });
+                statModalBody.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+                statModalBody.innerHTML = `<div style="text-align:center; color:#ef4444; padding: 20px;">เกิดข้อผิดพลาดในการโหลดสถิติ</div>`;
+            }
+        }
+        // ==========================================
+
         function setupDropdown(data) {
+            // ห้องเรียน
             const classrooms = [...new Set(data.map(item => item.classroom))].sort();
             classSelect.innerHTML = '<option value="">— แสดงทุกห้องเรียน —</option>';
             classrooms.forEach(room => {
@@ -885,27 +1318,37 @@
                 opt.textContent = room;
                 classSelect.appendChild(opt);
             });
+            // สถานะ (field ชื่อ remark)
+            const statuses = [...new Set(data.map(item => item.remark).filter(Boolean))].sort();
+            statusSelect.innerHTML = '<option value="">— แสดงทุกสถานะ —</option>';
+            statuses.forEach(st => {
+                const opt = document.createElement('option');
+                opt.value = st;
+                opt.textContent = st;
+                statusSelect.appendChild(opt);
+            });
         }
 
         function filterData() {
             const term = searchInput.value.toLowerCase().trim();
             const cls = classSelect.value;
+            const sts = statusSelect.value;
             const filtered = allStudentData.filter(s => {
                 const name = `${s.first_name} ${s.last_name}`.toLowerCase();
-                return name.includes(term) && (cls === '' || s.classroom === cls);
+                return name.includes(term)
+                    && (cls === '' || s.classroom === cls)
+                    && (sts === '' || s.remark === sts);
             });
             renderTable(filtered);
         }
 
         function formatThaiDate(dateStr) {
-            if (!dateStr) return "-";
+            if (!dateStr || dateStr === '-') return "-";
             try {
-                // Try to parse the date
                 let date = new Date(dateStr);
                 let year, month, day;
 
                 if (isNaN(date.getTime())) {
-                    // Manual parse for formats like 2564-04-12
                     const parts = dateStr.split('T')[0].split(/[-/]/);
                     if (parts.length >= 3) {
                         year = parseInt(parts[0]);
@@ -918,7 +1361,6 @@
                     year = date.getFullYear();
                     month = date.getMonth();
                     day = date.getDate();
-                    // Convert to BE if it looks like CE
                     if (year < 2400) year += 543;
                 }
 
@@ -959,7 +1401,7 @@
 
             const totalPages = Math.ceil(currentData.length / pageSize);
             const start = (currentPage - 1) * pageSize;
-            const end   = Math.min(start + pageSize, currentData.length);
+            const end = Math.min(start + pageSize, currentData.length);
             const pageData = currentData.slice(start, end);
 
             recordCount.innerHTML = `แสดง <strong>${start + 1}–${end}</strong> จาก <strong>${currentData.length}</strong> รายการ`;
@@ -967,7 +1409,6 @@
             pageData.forEach((s, i) => {
                 const fullName = `${s.prefix || ''}${s.first_name} ${s.last_name}`;
                 const globalIndex = start + i + 1;
-                const rowId = `row-${start}-${i}`;
 
                 // --- Main row ---
                 const row = document.createElement('tr');
@@ -980,12 +1421,13 @@
                     <td class="hide-mobile"><span class="td-citizen">${s.citizen_id}</span></td>
                     <td class="td-name">${fullName}</td>
                     <td class="hide-mobile">${formatThaiDate(s.birth_date)}</td>
+                    <td class="hide-mobile td-remark">${s.remark || '-'}</td>
                 `;
 
                 // --- Detail row (mobile only) ---
                 const detailRow = document.createElement('tr');
                 detailRow.className = 'detail-row';
-                const colspan = 3; // # visible columns on mobile (#, student_id, name)
+                const colspan = 3;
                 detailRow.innerHTML = `
                     <td colspan="${colspan}">
                         <div class="detail-content">
@@ -997,7 +1439,11 @@
                                 <span class="detail-label">วันเกิด</span>
                                 <span class="detail-value">${formatThaiDate(s.birth_date)}</span>
                             </div>
-                            <div class="detail-item" style="grid-column: span 2;">
+                            <div class="detail-item">
+                                <span class="detail-label">สถานะ</span>
+                                <span class="detail-value" style="color:var(--accent-purple)">${s.remark || '-'}</span>
+                            </div>
+                            <div class="detail-item">
                                 <span class="detail-label">เลขบัตรประชาชน</span>
                                 <span class="detail-value mono">${s.citizen_id}</span>
                             </div>
@@ -1034,10 +1480,8 @@
                 return btn;
             };
 
-            // Prev
             pag.appendChild(mkBtn('&#8592;', currentPage - 1, currentPage === 1));
 
-            // Pages with ellipsis
             const range = [];
             for (let p = 1; p <= totalPages; p++) {
                 if (p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)) {
@@ -1058,14 +1502,12 @@
                 }
             });
 
-            // Next
             pag.appendChild(mkBtn('&#8594;', currentPage + 1, currentPage === totalPages));
         }
 
         function goToPage(page) {
             currentPage = page;
             renderPage();
-            // Scroll table into view smoothly
             document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
