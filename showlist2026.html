@@ -7,6 +7,7 @@
     <title>student list update</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -22,7 +23,193 @@
             --text-muted: #94a3b8;
             --success: #10b981;
             --header-h: 88px;
-            /* ความสูง header - ใช้ใน sticky positioning */
+            --row-hover: rgba(99, 102, 241, 0.1);
+            --table-head-bg: #131d35;
+            --input-bg: rgba(15, 23, 42, 0.7);
+            --filter-card-bg: linear-gradient(135deg, rgba(20,30,50,0.98), rgba(30,45,65,0.97));
+            --table-card-bg: linear-gradient(135deg, rgba(30,41,59,0.95), rgba(39,53,72,0.9));
+            --modal-card-bg: linear-gradient(135deg, rgba(30,41,59,0.98), rgba(39,53,72,0.95));
+            --footer-bg: rgba(10, 16, 35, 0.92);
+            --table-footer-bg: rgba(15, 23, 42, 0.5);
+        }
+
+        /* ===== LIGHT MODE ===== */
+        html[data-theme="light"] {
+            --bg: #f0f4ff;
+            --surface: #ffffff;
+            --surface2: #f1f5fb;
+            --border: rgba(99, 102, 241, 0.25);
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --row-hover: rgba(99, 102, 241, 0.07);
+            --table-head-bg: #eef2ff;
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --filter-card-bg: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(241,245,251,0.97));
+            --table-card-bg: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(241,245,251,0.95));
+            --modal-card-bg: linear-gradient(135deg, rgba(255,255,255,0.99), rgba(241,245,251,0.98));
+            --footer-bg: rgba(238, 242, 255, 0.96);
+            --table-footer-bg: rgba(240, 244, 255, 0.8);
+        }
+
+        html[data-theme="light"] body {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        html[data-theme="light"] .filter-card {
+            border-color: rgba(99,102,241,0.2);
+            box-shadow: 0 4px 24px rgba(99,102,241,0.1);
+        }
+
+        html[data-theme="light"] .filter-toggle {
+            color: var(--primary);
+        }
+
+        html[data-theme="light"] .filter-toggle-label::before {
+            background: var(--primary);
+        }
+
+        html[data-theme="light"] .form-input,
+        html[data-theme="light"] .form-select {
+            background: var(--input-bg);
+            border-color: rgba(99,102,241,0.3);
+            color: var(--text);
+        }
+
+        html[data-theme="light"] .form-select option {
+            background: #ffffff;
+            color: #1e293b;
+        }
+
+        html[data-theme="light"] .form-input::placeholder {
+            color: #94a3b8;
+        }
+
+        html[data-theme="light"] .table-card {
+            border-color: rgba(99,102,241,0.2);
+            box-shadow: 0 4px 24px rgba(99,102,241,0.1);
+        }
+
+        html[data-theme="light"] .table-header {
+            background: rgba(99,102,241,0.06);
+            border-color: rgba(99,102,241,0.15);
+        }
+
+        html[data-theme="light"] th {
+            background: var(--table-head-bg);
+            color: #4f46e5;
+            border-color: rgba(99,102,241,0.2);
+        }
+
+        html[data-theme="light"] tbody tr {
+            border-color: rgba(99,102,241,0.08);
+        }
+
+        html[data-theme="light"] tbody tr:nth-child(even) {
+            background: rgba(99,102,241,0.03);
+        }
+
+        html[data-theme="light"] tbody tr:hover {
+            background: var(--row-hover);
+        }
+
+        html[data-theme="light"] td {
+            color: var(--text-muted);
+        }
+
+        html[data-theme="light"] td.td-name {
+            color: var(--text);
+        }
+
+        html[data-theme="light"] td.td-id {
+            color: var(--text);
+        }
+
+        html[data-theme="light"] td.td-citizen {
+            color: #2563eb;
+        }
+
+        html[data-theme="light"] .classroom-badge {
+            background: rgba(99,102,241,0.1);
+            color: #4f46e5;
+            border-color: rgba(99,102,241,0.25);
+        }
+
+        html[data-theme="light"] .table-footer {
+            background: var(--table-footer-bg);
+            border-color: rgba(99,102,241,0.15);
+        }
+
+        html[data-theme="light"] .record-count {
+            color: var(--text-muted);
+        }
+
+        html[data-theme="light"] .page-btn {
+            background: rgba(99,102,241,0.06);
+            color: var(--text-muted);
+            border-color: rgba(99,102,241,0.2);
+        }
+
+        html[data-theme="light"] .page-btn:hover:not(:disabled) {
+            background: rgba(99,102,241,0.15);
+            color: var(--text);
+        }
+
+        html[data-theme="light"] .page-size-select {
+            background: #fff;
+            color: var(--text-muted);
+            border-color: rgba(99,102,241,0.25);
+        }
+
+        html[data-theme="light"] .modal-card {
+            box-shadow: 0 20px 60px rgba(79,70,229,0.15);
+            border-color: rgba(99,102,241,0.25);
+        }
+
+        html[data-theme="light"] .modal-header {
+            background: rgba(99,102,241,0.06);
+            border-color: rgba(99,102,241,0.15);
+        }
+
+        html[data-theme="light"] .modal-title {
+            color: #1e293b;
+        }
+
+        html[data-theme="light"] .close-modal-btn {
+            background: rgba(0,0,0,0.05);
+            color: #64748b;
+        }
+
+        html[data-theme="light"] .stat-item {
+            background: rgba(99,102,241,0.04);
+            border-color: rgba(99,102,241,0.15);
+        }
+
+        html[data-theme="light"] .stat-label {
+            color: var(--text);
+        }
+
+        html[data-theme="light"] .loading-state p,
+        html[data-theme="light"] .empty-state p {
+            color: var(--text-muted);
+        }
+
+        html[data-theme="light"] .detail-content {
+            background: rgba(99,102,241,0.05);
+        }
+
+        html[data-theme="light"] .detail-value {
+            color: var(--text);
+        }
+
+        html[data-theme="light"] footer {
+            background: var(--footer-bg);
+            border-color: rgba(99,102,241,0.15);
+            color: #94a3b8;
+        }
+
+        html[data-theme="light"] .modal-overlay {
+            background: rgba(100,116,139,0.35);
         }
 
         * {
@@ -38,6 +225,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         /* ===== HEADER ===== */
@@ -116,7 +304,7 @@
 
         /* ===== FILTER CARD ===== */
         .filter-card {
-            background: linear-gradient(135deg, rgba(20, 30, 50, 0.98), rgba(30, 45, 65, 0.97));
+            background: var(--filter-card-bg);
             border: 1px solid var(--border);
             border-radius: 18px;
             margin-bottom: 24px;
@@ -127,6 +315,7 @@
             position: sticky;
             top: calc(var(--header-h) + 8px);
             z-index: 80;
+            transition: background 0.3s ease;
         }
 
         .filter-toggle {
@@ -187,13 +376,17 @@
 
         .filter-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 16px;
         }
 
         @media (max-width: 640px) {
             .filter-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .filter-grid .form-group:first-child {
+                grid-column: 1 / -1;
             }
         }
 
@@ -222,7 +415,7 @@
         .form-select {
             width: 100%;
             padding: 11px 14px 11px 40px;
-            background: rgba(15, 23, 42, 0.7);
+            background: var(--input-bg);
             border: 1.5px solid rgba(99, 102, 241, 0.22);
             border-radius: 11px;
             color: var(--text);
@@ -254,11 +447,12 @@
 
         /* ===== TABLE CARD ===== */
         .table-card {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(39, 53, 72, 0.9));
+            background: var(--table-card-bg);
             border: 1px solid var(--border);
             border-radius: 18px;
             overflow: hidden;
             box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+            transition: background 0.3s ease;
         }
 
         .table-header {
@@ -382,7 +576,7 @@
             border-bottom: 1px solid rgba(99, 102, 241, 0.2);
             position: sticky;
             top: 0;
-            background: #131d35;
+            background: var(--table-head-bg);
             z-index: 5;
         }
 
@@ -397,7 +591,7 @@
         }
 
         tbody tr:hover {
-            background: rgba(99, 102, 241, 0.1);
+            background: var(--row-hover);
             transform: translateX(2px);
         }
 
@@ -509,7 +703,7 @@
             align-items: center;
             justify-content: space-between;
             border-top: 1px solid rgba(99, 102, 241, 0.13);
-            background: rgba(15, 23, 42, 0.5);
+            background: var(--table-footer-bg);
         }
 
         .record-count {
@@ -604,7 +798,7 @@
         }
 
         .modal-card {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(39, 53, 72, 0.95));
+            background: var(--modal-card-bg);
             border: 1px solid var(--border);
             border-radius: 20px;
             width: 100%;
@@ -841,6 +1035,72 @@
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
         }
 
+        .stat-value-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-pct {
+            font-size: 0.82rem;
+            font-weight: 600;
+            opacity: 0.85;
+        }
+
+        .stat-item.total-row .stat-pct {
+            color: #a5b4fc !important;
+        }
+
+        /* ===== THEME TOGGLE BUTTON ===== */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 99px;
+            padding: 6px 14px;
+            cursor: pointer;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.04em;
+            transition: background 0.2s, border-color 0.2s, transform 0.15s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255,255,255,0.35);
+            transform: translateY(-1px);
+        }
+
+        .theme-toggle svg {
+            flex-shrink: 0;
+            transition: transform 0.4s ease;
+        }
+
+        .theme-toggle:hover svg {
+            transform: rotate(20deg);
+        }
+
+        /* ===== CHART.JS DONUT ===== */
+        .chart-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 22px;
+            gap: 14px;
+        }
+
+        .donut-canvas-wrap {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
         /* ===== PAGE FOOTER ===== */
         footer {
             position: fixed;
@@ -1022,9 +1282,16 @@
             </div>
             <div class="header-title">
                 <h1>ระบบฐานข้อมูลนักเรียน</h1>
-                <p>ค้นหาและตรวจสอบข้อมูลนักเรียนประจำชั้น</p>
+                <p>ตรวจสอบข้อมูลนักเรียน 1/2569</p>
             </div>
-            <div class="header-badge">LIST STUDENT DATA | Update 28-04-2569</div>
+            <div class="header-badge hide-mobile">LIST STUDENT DATA | Update 28-04-2569</div>
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="เปลี่ยนโหมดสี">
+                <svg id="themeIcon" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21.752 15.002A9.718 9.718 0 0118 15.75 9.75 9.75 0 018.25 6c0-1.332.26-2.6.728-3.752A9.753 9.753 0 003 12c0 5.385 4.365 9.75 9.75 9.75 4.944 0 9.051-3.688 9.75-8.424-.014.057-.03.114-.046.17l-.702-.514z" />
+                </svg>
+                <span id="themeLabel">กลางวัน</span>
+            </button>
         </div>
     </header>
 
@@ -1040,7 +1307,7 @@
                 </svg>
             </button>
             <div class="filter-body" id="filterBody">
-                <div class="filter-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                <div class="filter-grid">
                     <div class="form-group">
                         <label for="searchInput">ค้นหาชื่อ หรือ นามสกุล</label>
                         <div class="input-wrap">
@@ -1204,11 +1471,38 @@
         const recordCount = document.getElementById('recordCount');
 
         document.addEventListener('DOMContentLoaded', () => {
+            // โหลด theme จาก localStorage
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            applyTheme(savedTheme);
+
             fetchData();
             searchInput.addEventListener('input', filterData);
             classSelect.addEventListener('change', filterData);
             statusSelect.addEventListener('change', filterData);
         });
+
+        function applyTheme(theme) {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            const label = document.getElementById('themeLabel');
+            if (theme === 'light') {
+                html.setAttribute('data-theme', 'light');
+                label.textContent = 'กลางคืน';
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 3v1m0 16v1m8.66-9H21M3 12H2m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14A7 7 0 0012 5z"/>`;
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                label.textContent = 'กลางวัน';
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round"
+                    d="M21.752 15.002A9.718 9.718 0 0118 15.75 9.75 9.75 0 018.25 6c0-1.332.26-2.6.728-3.752A9.753 9.753 0 003 12c0 5.385 4.365 9.75 9.75 9.75 4.944 0 9.051-3.688 9.75-8.424-.014.057-.03.114-.046.17l-.702-.514z"/>`;
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
 
         function toggleFilter() {
             const card = document.getElementById('filterCard');
@@ -1275,31 +1569,112 @@
                     return;
                 }
 
-                // กำหนดสีแบบ index-based (ใช้ได้แน่นอน ไม่ขึ้นกับชื่อสถานะ)
+                // กำหนดสีแบบ index-based
                 const COLOR_PALETTE = [
-                    'color-green',
-                    'color-blue',
-                    'color-orange',
-                    'color-yellow',
-                    'color-pink',
-                    'color-cyan',
-                    'color-gray',
+                    { cls: 'color-green',  hex: '#10b981' },
+                    { cls: 'color-blue',   hex: '#3b82f6' },
+                    { cls: 'color-orange', hex: '#f97316' },
+                    { cls: 'color-yellow', hex: '#eab308' },
+                    { cls: 'color-pink',   hex: '#ec4899' },
+                    { cls: 'color-cyan',   hex: '#06b6d4' },
+                    { cls: 'color-gray',   hex: '#64748b' },
                 ];
 
-                let html = '';
+                // แยก rows ออกจาก total
+                const rowItems = stats.filter(i => !i.status.includes('รวม'));
+                const totalItem = stats.find(i => i.status.includes('รวม'));
+                const grandTotal = totalItem ? Number(totalItem.count) : rowItems.reduce((s, i) => s + Number(i.count), 0);
+
+                // --- Build stat list rows ---
+                let listHtml = '';
                 let colorIdx = 0;
                 stats.forEach(item => {
                     const isTotal = item.status.includes('รวม');
-                    const colorClass = isTotal ? '' : COLOR_PALETTE[colorIdx % COLOR_PALETTE.length];
+                    const color = isTotal ? null : COLOR_PALETTE[colorIdx % COLOR_PALETTE.length];
                     if (!isTotal) colorIdx++;
-                    html += `
-                        <div class="stat-item ${isTotal ? 'total-row' : colorClass}">
+                    const count = Number(item.count);
+                    const pct = isTotal ? 100 : (grandTotal > 0 ? (count / grandTotal * 100) : 0);
+                    const pctStr = pct.toFixed(1) + '%';
+                    listHtml += `
+                        <div class="stat-item ${isTotal ? 'total-row' : color.cls}">
                             <span class="stat-label"><span class="stat-dot"></span>${item.status}</span>
-                            <span class="stat-value">${item.count}</span>
+                            <span class="stat-value-wrap">
+                                <span class="stat-pct" style="${color ? `color:${color.hex}` : 'color:#a5b4fc'}">${pctStr}</span>
+                                <span class="stat-value">${item.count}</span>
+                            </span>
                         </div>
                     `;
                 });
-                statModalBody.innerHTML = html;
+
+                statModalBody.innerHTML = `
+                    <div class="chart-wrap">
+                        <div class="donut-canvas-wrap">
+                            <canvas id="statDonutChart"></canvas>
+                        </div>
+                    </div>
+                    ${listHtml}
+                `;
+
+                // --- Chart.js Doughnut ---
+                const chartColors = rowItems.map((_, i) => COLOR_PALETTE[i % COLOR_PALETTE.length].hex);
+                const chartHover = chartColors.map(c => c + 'cc');
+
+                // Center-text plugin
+                const centerTextPlugin = {
+                    id: 'centerText',
+                    afterDraw(chart) {
+                        const { ctx, chartArea: { top, bottom, left, right } } = chart;
+                        const cx = (left + right) / 2;
+                        const cy = (top + bottom) / 2;
+                        ctx.save();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = 'bold 2rem Sarabun, sans-serif';
+                        ctx.fillText(grandTotal, cx, cy - 10);
+                        ctx.fillStyle = '#94a3b8';
+                        ctx.font = '0.72rem Sarabun, sans-serif';
+                        ctx.fillText('นักเรียนทั้งหมด', cx, cy + 16);
+                        ctx.restore();
+                    }
+                };
+
+                new Chart(document.getElementById('statDonutChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: rowItems.map(i => i.status),
+                        datasets: [{
+                            data: rowItems.map(i => Number(i.count)),
+                            backgroundColor: chartColors,
+                            hoverBackgroundColor: chartHover,
+                            borderWidth: 2,
+                            borderColor: 'rgba(15,23,42,0.8)',
+                            hoverOffset: 10,
+                        }]
+                    },
+                    options: {
+                        cutout: '68%',
+                        animation: { animateScale: true, duration: 800 },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(15,23,42,0.92)',
+                                borderColor: 'rgba(99,102,241,0.35)',
+                                borderWidth: 1,
+                                titleColor: '#e2e8f0',
+                                bodyColor: '#94a3b8',
+                                padding: 10,
+                                callbacks: {
+                                    label(ctx) {
+                                        const pct = grandTotal > 0 ? (ctx.parsed / grandTotal * 100).toFixed(1) : 0;
+                                        return `  ${ctx.parsed} คน  (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: [centerTextPlugin]
+                });
 
             } catch (error) {
                 console.error('Error fetching stats:', error);
