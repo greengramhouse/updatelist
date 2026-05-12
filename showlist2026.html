@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>student list update</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-dark: #3730a3;
+            --accent: #06b6d4;
+            --accent-purple: #a855f7;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface2: #273548;
+            --border: rgba(99, 102, 241, 0.18);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --header-h: 88px;
+            --row-hover: rgba(99, 102, 241, 0.1);
+            --table-head-bg: #131d35;
+            --input-bg: rgba(15, 23, 42, 0.7);
+            --filter-card-bg: linear-gradient(135deg, rgba(20,30,50,0.98), rgba(30,45,65,0.97));
+            --table-card-bg: linear-gradient(135deg, rgba(30,41,59,0.95), rgba(39,53,72,0.9));
+            --modal-card-bg: linear-gradient(135deg, rgba(30,41,59,0.98), rgba(39,53,72,0.95));
+            --footer-bg: rgba(10, 16, 35, 0.92);
+            --table-footer-bg: rgba(15, 23, 42, 0.5);
+        }
+
+        /* ===== LIGHT MODE ===== */
+        html[data-theme="light"] {
+            --bg: #f0f4ff;
+            --surface: #ffffff;
+            --surface2: #f1f5fb;
+            --border: rgba(99, 102, 241, 0.25);
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --row-hover: rgba(99, 102, 241, 0.07);
+            --table-head-bg: #eef2ff;
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --filter-card-bg: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(241,245,251,0.97));
+            --table-card-bg: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(241,245,251,0.95));
+            --modal-card-bg: linear-gradient(135deg, rgba(255,255,255,0.99), rgba(241,245,251,0.98));
+            --footer-bg: rgba(238, 242, 255, 0.96);
+            --table-footer-bg: rgba(240, 244, 255, 0.8);
+        }
+
+        html[data-theme="light"] body { background: var(--bg); color: var(--text); }
+        html[data-theme="light"] .filter-card, html[data-theme="light"] .table-card { border-color: rgba(99,102,241,0.2); box-shadow: 0 4px 24px rgba(99,102,241,0.1); }
+        html[data-theme="light"] .filter-toggle { color: var(--primary); }
+        html[data-theme="light"] .filter-toggle-label::before { background: var(--primary); }
+        html[data-theme="light"] .form-input, html[data-theme="light"] .form-select { background: var(--input-bg); border-color: rgba(99,102,241,0.3); color: var(--text); }
+        html[data-theme="light"] .form-select option { background: #ffffff; color: #1e293b; }
+        html[data-theme="light"] .form-input::placeholder { color: #94a3b8; }
+        html[data-theme="light"] .table-header { background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.15); }
+        html[data-theme="light"] th { background: var(--table-head-bg); color: #4f46e5; border-color: rgba(99,102,241,0.2); }
+        html[data-theme="light"] tbody tr { border-color: rgba(99,102,241,0.08); }
+        html[data-theme="light"] tbody tr:nth-child(even) { background: rgba(99,102,241,0.03); }
+        html[data-theme="light"] tbody tr:hover { background: var(--row-hover); }
+        html[data-theme="light"] td { color: var(--text-muted); }
+        html[data-theme="light"] td.td-name, html[data-theme="light"] td.td-id { color: var(--text); }
+        html[data-theme="light"] td.td-citizen { color: #2563eb; }
+        html[data-theme="light"] .classroom-badge { background: rgba(99,102,241,0.1); color: #4f46e5; border-color: rgba(99,102,241,0.25); }
+        html[data-theme="light"] .table-footer { background: var(--table-footer-bg); border-color: rgba(99,102,241,0.15); }
+        html[data-theme="light"] .record-count { color: var(--text-muted); }
+        html[data-theme="light"] .page-btn { background: rgba(99,102,241,0.06); color: var(--text-muted); border-color: rgba(99,102,241,0.2); }
+        html[data-theme="light"] .page-btn:hover:not(:disabled) { background: rgba(99,102,241,0.15); color: var(--text); }
+        html[data-theme="light"] .page-size-select { background: #fff; color: var(--text-muted); border-color: rgba(99,102,241,0.25); }
+        html[data-theme="light"] .modal-card { box-shadow: 0 20px 60px rgba(79,70,229,0.15); border-color: rgba(99,102,241,0.25); }
+        html[data-theme="light"] .modal-header { background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.15); }
+        html[data-theme="light"] .modal-title { color: #1e293b; }
+        html[data-theme="light"] .close-modal-btn { background: rgba(0,0,0,0.05); color: #64748b; }
+        html[data-theme="light"] .stat-item { background: rgba(99,102,241,0.04); border-color: rgba(99,102,241,0.15); }
+        html[data-theme="light"] .stat-label { color: var(--text); }
+        html[data-theme="light"] .loading-state p, html[data-theme="light"] .empty-state p { color: var(--text-muted); }
+        html[data-theme="light"] footer { background: var(--footer-bg); border-color: rgba(99,102,241,0.15); color: #94a3b8; }
+        html[data-theme="light"] .modal-overlay { background: rgba(100,116,139,0.35); }
+        
+        /* Modal Additions for Export */
+        html[data-theme="light"] .modal-footer { background: rgba(99,102,241,0.03); border-color: rgba(99,102,241,0.15); }
+        html[data-theme="light"] .checkbox-label { color: var(--text); background: rgba(99,102,241,0.04); border-color: rgba(99,102,241,0.2); }
+        html[data-theme="light"] .checkbox-label:hover { background: rgba(99,102,241,0.1); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e40af 100%);
+            padding: 0; position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 32px rgba(79, 70, 229, 0.25);
+        }
+        .header-inner { max-width: 1280px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; gap: 16px; }
+        .logo-wrap { width: 52px; height: 52px; border-radius: 14px; background: rgba(255, 255, 255, 0.12); border: 1.5px solid rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; backdrop-filter: blur(8px); }
+        .logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
+        .header-title h1 { font-size: 1.35rem; font-weight: 700; color: #fff; letter-spacing: 0.02em; }
+        .header-title p { font-size: 0.82rem; color: #a5b4fc; margin-top: 2px; }
+        .header-badge { margin-left: auto; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.35); color: #67e8f9; font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 99px; letter-spacing: 0.05em; }
+
+        main { flex: 1; max-width: 1280px; width: 100%; margin: 0 auto; padding: 28px 20px 72px; }
+
+        .filter-card {
+            background: var(--filter-card-bg); border: 1px solid var(--border); border-radius: 18px;
+            margin-bottom: 24px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); overflow: hidden; position: sticky;
+            top: calc(var(--header-h) + 8px); z-index: 80; transition: background 0.3s ease;
+        }
+        .filter-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: none; border: none; cursor: pointer; font-family: 'Sarabun', sans-serif; color: var(--accent); gap: 10px; }
+        .filter-toggle-label { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+        .filter-toggle-label::before { content: ''; display: inline-block; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; }
+        .filter-chevron { width: 16px; height: 16px; transition: transform 0.3s ease; flex-shrink: 0; }
+        .filter-card.is-open .filter-chevron { transform: rotate(180deg); }
+        .filter-body { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.35s ease; padding: 0 20px; }
+        .filter-card.is-open .filter-body { max-height: 320px; padding: 4px 20px 20px; }
+        .filter-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+        
+        .form-group label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--text-muted); margin-bottom: 7px; }
+        .input-wrap { position: relative; }
+        .input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #6366f1; pointer-events: none; }
+        .form-input, .form-select { width: 100%; padding: 11px 14px 11px 40px; background: var(--input-bg); border: 1.5px solid rgba(99, 102, 241, 0.22); border-radius: 11px; color: var(--text); font-family: 'Sarabun', sans-serif; font-size: 0.95rem; transition: all 0.2s; outline: none; }
+        .form-select { padding-left: 40px; cursor: pointer; }
+        .form-input:focus, .form-select:focus { border-color: var(--primary-light); background: rgba(79, 70, 229, 0.08); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18); }
+        .form-input::placeholder { color: #475569; }
+        .form-select option { background: #1e293b; }
+
+        .table-card { background: var(--table-card-bg); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35); transition: background 0.3s ease; }
+        .table-header { padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(99, 102, 241, 0.15); background: rgba(79, 70, 229, 0.07); flex-wrap: wrap; gap: 10px; }
+        .table-header-title { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #a5b4fc; display: flex; align-items: center; gap: 8px; }
+        .table-header-title::before { content: ''; display: inline-block; width: 3px; height: 14px; background: #a5b4fc; border-radius: 2px; }
+        
+        .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; border-radius: 8px; padding: 6px 14px; cursor: pointer; transition: all 0.2s; font-family: 'Sarabun', sans-serif; }
+        
+        .refresh-btn { color: var(--accent); background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.25); }
+        .refresh-btn:hover { background: rgba(6, 182, 212, 0.2); border-color: rgba(6, 182, 212, 0.5); transform: translateY(-1px); }
+        .refresh-btn:hover svg { transform: rotate(180deg); }
+        .refresh-btn svg { transition: transform 0.4s; }
+        
+        .stat-btn { color: var(--accent-purple); background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.25); }
+        .stat-btn:hover { background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.5); transform: translateY(-1px); }
+
+        /* New Export Buttons */
+        .excel-btn { color: var(--success); background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); }
+        .excel-btn:hover { background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); transform: translateY(-1px); }
+        
+        .pdf-btn { color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.25); }
+        .pdf-btn:hover { background: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.5); transform: translateY(-1px); }
+
+        /* Table */
+        .table-scroll { overflow-x: auto; }
+        .table-scroll::-webkit-scrollbar { height: 5px; }
+        .table-scroll::-webkit-scrollbar-track { background: transparent; }
+        .table-scroll::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 99px; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        thead tr { background: rgba(79, 70, 229, 0.1); }
+        th { padding: 13px 18px; text-align: left; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #818cf8; white-space: nowrap; border-bottom: 1px solid rgba(99, 102, 241, 0.2); position: sticky; top: 0; background: var(--table-head-bg); z-index: 5; }
+        tbody tr { border-bottom: 1px solid rgba(99, 102, 241, 0.08); transition: background 0.18s, transform 0.18s; animation: fadeInRow 0.3s ease both; }
+        tbody tr:nth-child(even) { background: rgba(79, 70, 229, 0.04); }
+        tbody tr:hover { background: var(--row-hover); transform: translateX(2px); }
+        @keyframes fadeInRow { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        td { padding: 13px 18px; font-size: 0.9rem; color: var(--text-muted); white-space: nowrap; }
+        td.td-name { color: var(--text); font-weight: 500; }
+        td.td-id { color: var(--text); font-weight: 600; font-size: 0.88rem; }
+        td.td-no { color: #64748b; font-size: 0.82rem; text-align: center; }
+        td.td-citizen { font-family: monospace; font-size: 0.85rem; color: #7dd3fc; letter-spacing: 0.04em; }
+        td.td-remark { font-size: 0.8rem; color: var(--accent-purple); }
+        .classroom-badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; background: rgba(99, 102, 241, 0.18); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+
+        .loading-state, .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px 20px; gap: 14px; }
+        .spinner { width: 44px; height: 44px; border: 3px solid rgba(99, 102, 241, 0.2); border-top-color: var(--primary-light); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-state p, .empty-state p { color: var(--text-muted); font-size: 0.95rem; text-align: center; }
+        .empty-state svg { opacity: 0.25; }
+        .empty-state p.sub { font-size: 0.82rem; color: #475569; }
+
+        .table-footer { padding: 13px 22px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(99, 102, 241, 0.13); background: var(--table-footer-bg); }
+        .record-count { font-size: 0.82rem; color: var(--text-muted); }
+        .record-count strong { color: var(--accent); }
+        
+        .pagination { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+        .page-btn { min-width: 32px; height: 32px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.82rem; font-weight: 600; font-family: 'Sarabun', sans-serif; background: rgba(99, 102, 241, 0.08); color: var(--text-muted); border: 1px solid rgba(99, 102, 241, 0.15); cursor: pointer; transition: all 0.18s; user-select: none; }
+        .page-btn:hover:not(:disabled) { background: rgba(99, 102, 241, 0.2); color: var(--text); border-color: rgba(99, 102, 241, 0.4); }
+        .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 0 12px rgba(79, 70, 229, 0.45); }
+        .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .page-size-select { background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(99, 102, 241, 0.22); border-radius: 8px; color: var(--text-muted); font-family: 'Sarabun', sans-serif; font-size: 0.8rem; padding: 4px 8px; cursor: pointer; outline: none; }
+
+        /* ===== MODALS ===== */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 15, 25, 0.8); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; padding: 20px; }
+        .modal-overlay.is-active { opacity: 1; visibility: visible; }
+        .modal-card { background: var(--modal-card-bg); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); transform: translateY(20px) scale(0.95); transition: all 0.3s ease; overflow: hidden; display: flex; flex-direction: column; }
+        .modal-overlay.is-active .modal-card { transform: translateY(0) scale(1); }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid rgba(99, 102, 241, 0.15); display: flex; align-items: center; justify-content: space-between; background: rgba(79, 70, 229, 0.05); }
+        .modal-title { font-size: 1.1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .close-modal-btn { background: rgba(255, 255, 255, 0.05); border: none; color: var(--text-muted); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .close-modal-btn:hover { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .modal-body { padding: 24px; max-height: 70vh; overflow-y: auto; }
+        .modal-body::-webkit-scrollbar { width: 5px; }
+        .modal-body::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 99px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid rgba(99, 102, 241, 0.15); display: flex; justify-content: flex-end; gap: 12px; background: rgba(15, 23, 42, 0.4); }
+
+        /* Export Modal Checkboxes */
+        .checkbox-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--text); cursor: pointer; background: rgba(30, 41, 59, 0.6); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(99, 102, 241, 0.15); transition: all 0.2s; }
+        .checkbox-label:hover { background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); }
+        .checkbox-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+
+        /* Stats Styles */
+        .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(99, 102, 241, 0.1); border-radius: 12px; margin-bottom: 10px; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .stat-item:hover { transform: translateX(3px); }
+        .stat-item.color-green { background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); }
+        .stat-item.color-green .stat-dot { background: #10b981; }
+        .stat-item.color-green .stat-value { color: #6ee7b7; background: rgba(16, 185, 129, 0.15); }
+        .stat-item.color-blue { background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.25); }
+        .stat-item.color-blue .stat-dot { background: #3b82f6; }
+        .stat-item.color-blue .stat-value { color: #93c5fd; background: rgba(59, 130, 246, 0.15); }
+        .stat-item.color-orange { background: rgba(249, 115, 22, 0.08); border-color: rgba(249, 115, 22, 0.25); }
+        .stat-item.color-orange .stat-dot { background: #f97316; }
+        .stat-item.color-orange .stat-value { color: #fdba74; background: rgba(249, 115, 22, 0.15); }
+        .stat-item.color-yellow { background: rgba(234, 179, 8, 0.08); border-color: rgba(234, 179, 8, 0.25); }
+        .stat-item.color-yellow .stat-dot { background: #eab308; }
+        .stat-item.color-yellow .stat-value { color: #fde047; background: rgba(234, 179, 8, 0.15); }
+        .stat-item.color-pink { background: rgba(236, 72, 153, 0.08); border-color: rgba(236, 72, 153, 0.25); }
+        .stat-item.color-pink .stat-dot { background: #ec4899; }
+        .stat-item.color-pink .stat-value { color: #f9a8d4; background: rgba(236, 72, 153, 0.15); }
+        .stat-item.color-gray { background: rgba(100, 116, 139, 0.08); border-color: rgba(100, 116, 139, 0.25); }
+        .stat-item.color-gray .stat-dot { background: #64748b; }
+        .stat-item.color-gray .stat-value { color: #94a3b8; background: rgba(100, 116, 139, 0.15); }
+        .stat-item.color-cyan { background: rgba(6, 182, 212, 0.08); border-color: rgba(6, 182, 212, 0.2); }
+        .stat-item.color-cyan .stat-dot { background: var(--accent); }
+        .stat-item.color-cyan .stat-value { color: var(--accent); background: rgba(6, 182, 212, 0.15); }
+        .stat-item.total-row { background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.45); margin-top: 16px; }
+        .stat-item.total-row .stat-dot { background: #818cf8; }
+        .stat-label { font-size: 0.95rem; color: var(--text); font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .stat-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+        .stat-item.total-row .stat-label { color: #a5b4fc; font-weight: 700; }
+        .stat-value { font-size: 1.1rem; font-weight: 700; color: var(--accent); background: rgba(6, 182, 212, 0.15); padding: 4px 12px; border-radius: 8px; }
+        .stat-item.total-row .stat-value { color: #fff; background: var(--primary); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
+        .stat-value-wrap { display: flex; align-items: center; gap: 8px; }
+        .stat-pct { font-size: 0.82rem; font-weight: 600; opacity: 0.85; }
+        .stat-item.total-row .stat-pct { color: #a5b4fc !important; }
+
+        /* Theme Toggle & Charts */
+        .theme-toggle { display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.1); border: 1.5px solid rgba(255, 255, 255, 0.2); border-radius: 99px; padding: 6px 14px; cursor: pointer; font-family: 'Sarabun', sans-serif; font-size: 0.78rem; font-weight: 600; color: #fff; letter-spacing: 0.04em; transition: background 0.2s, border-color 0.2s, transform 0.15s; white-space: nowrap; flex-shrink: 0; }
+        .theme-toggle:hover { background: rgba(255, 255, 255, 0.18); border-color: rgba(255,255,255,0.35); transform: translateY(-1px); }
+        .theme-toggle svg { flex-shrink: 0; transition: transform 0.4s ease; }
+        .theme-toggle:hover svg { transform: rotate(20deg); }
+        .chart-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 22px; gap: 14px; }
+        .donut-canvas-wrap { position: relative; width: 200px; height: 200px; }
+
+        footer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 90; text-align: center; padding: 10px 20px; font-size: 0.78rem; color: #475569; background: rgba(10, 16, 35, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(99, 102, 241, 0.15); }
+        footer span { color: #64748b; }
+
+        .detail-row td { padding: 0 !important; border-bottom: none !important; }
+        .detail-content { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 12px; background: rgba(79, 70, 229, 0.07); border-top: 1px dashed rgba(99, 102, 241, 0.2); border-bottom: 1px solid rgba(99, 102, 241, 0.12); max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; }
+        .detail-row.is-open .detail-content { max-height: 180px; padding: 10px 12px 14px; }
+        .detail-item { display: flex; flex-direction: column; gap: 2px; }
+        .detail-label { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6366f1; }
+        .detail-value { font-size: 0.82rem; color: var(--text); font-weight: 500; }
+        .detail-value.mono { font-family: monospace; color: #7dd3fc; font-size: 0.78rem; letter-spacing: 0.03em; }
+
+        @media (max-width: 640px) {
+            .filter-grid { grid-template-columns: 1fr 1fr; }
+            .filter-grid .form-group:first-child { grid-column: 1 / -1; }
+            tbody tr.data-row { cursor: pointer; }
+            tbody tr.data-row.is-expanded { background: rgba(79, 70, 229, 0.1) !important; }
+            tbody tr.data-row td.td-name::after { content: " ▾"; color: #6366f1; font-size: 0.7rem; transition: transform 0.25s; display: inline-block; }
+            tbody tr.data-row.is-expanded td.td-name::after { transform: rotate(180deg); }
+            .table-header { justify-content: center; }
+            .action-buttons { width: 100%; justify-content: space-between; margin-top: 8px; }
+            .btn { flex: 1; justify-content: center; padding: 6px 10px; font-size: 0.75rem; }
+            .table-footer { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .hide-mobile { display: none !important; }
+            .header-inner { padding: 12px 16px; }
+            .header-title h1 { font-size: 1.1rem; }
+            .header-badge { display: none; }
+            main { padding: 16px 12px 72px; }
+            :root { --header-h: 64px; }
+            table { min-width: 100% !important; }
+            th, td { padding: 10px 8px !important; font-size: 0.82rem !important; white-space: normal !important; }
+            td.td-name { min-width: 120px; }
+            td.td-id { font-size: 0.8rem !important; }
+            .checkbox-grid { grid-template-columns: 1fr; }
+        }
+        @media (min-width: 641px) { .detail-row { display: none !important; } }
+        .hidden { display: none !important; }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-inner">
+            <div class="logo-wrap">
+                <img src="https://res.cloudinary.com/gukkghu/image/upload/v1646575846/gukkghu/%E0%B8%87%E0%B8%B2%E0%B8%99%E0%B8%AD%E0%B8%AD%E0%B8%81%E0%B9%81%E0%B8%9A%E0%B8%9A%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B9%84%E0%B8%A1%E0%B9%88%E0%B8%A1%E0%B8%B5%E0%B8%8A%E0%B8%B7%E0%B9%88%E0%B8%AD_aytvpq.png"
+                    alt="โลโก้โรงเรียน">
+            </div>
+            <div class="header-title">
+                <h1>ระบบฐานข้อมูลนักเรียน</h1>
+                <p>ตรวจสอบข้อมูลนักเรียน 1/2569</p>
+            </div>
+            <div class="header-badge hide-mobile">LIST STUDENT DATA | Update 28-04-2569</div>
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="เปลี่ยนโหมดสี">
+                <svg id="themeIcon" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21.752 15.002A9.718 9.718 0 0118 15.75 9.75 9.75 0 018.25 6c0-1.332.26-2.6.728-3.752A9.753 9.753 0 003 12c0 5.385 4.365 9.75 9.75 9.75 4.944 0 9.051-3.688 9.75-8.424-.014.057-.03.114-.046.17l-.702-.514z" />
+                </svg>
+                <span id="themeLabel">กลางวัน</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main>
+        <!-- Filter -->
+        <div class="filter-card is-open" id="filterCard">
+            <button class="filter-toggle" onclick="toggleFilter()" aria-expanded="true" aria-controls="filterBody">
+                <span class="filter-toggle-label">ตัวกรองค้นหา</span>
+                <svg class="filter-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div class="filter-body" id="filterBody">
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="searchInput">ค้นหาชื่อ หรือ นามสกุล</label>
+                        <div class="input-wrap">
+                            <svg class="input-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" /></svg>
+                            <input type="text" id="searchInput" class="form-input" placeholder="พิมพ์ชื่อ หรือ นามสกุล...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="classSelect">เลือกห้องเรียน</label>
+                        <div class="input-wrap">
+                            <svg class="input-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M3 12h18M3 17h18" /></svg>
+                            <select id="classSelect" class="form-select">
+                                <option value="">— แสดงทุกห้องเรียน —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="statusSelect">เลือกสถานะ</label>
+                        <div class="input-wrap">
+                            <svg class="input-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <select id="statusSelect" class="form-select">
+                                <option value="">— แสดงทุกสถานะ —</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="table-card">
+            <div class="table-header">
+                <div class="table-header-title">รายชื่อนักเรียน</div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn excel-btn" onclick="openExportModal('excel')">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                        </svg> Excel
+                    </button>
+                    <button class="btn pdf-btn" onclick="openExportModal('pdf')">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg> PDF
+                    </button>
+                    <button class="btn stat-btn" onclick="openStatModal()">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg> สถิติ
+                    </button>
+                    <button class="btn refresh-btn" onclick="fetchData()">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg> รีเฟรช
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p>กำลังโหลดข้อมูล กรุณารอสักครู่...</p>
+            </div>
+
+            <!-- Table -->
+            <div id="tableWrapper" class="table-scroll hidden">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:52px;text-align:center">#</th>
+                            <th class="hide-mobile">ห้องเรียน</th>
+                            <th>รหัสนักเรียน</th>
+                            <th class="hide-mobile">เลขประจำตัวประชาชน</th>
+                            <th>ชื่อ - นามสกุล</th>
+                            <th class="hide-mobile">วันเกิด</th>
+                            <th class="hide-mobile">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Empty -->
+            <div id="emptyState" class="empty-state hidden">
+                <svg width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="#818cf8" stroke-width="1.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p>ไม่พบข้อมูลที่ค้นหา</p>
+                <p class="sub">ลองเปลี่ยนคำค้นหา หรือเลือกห้องเรียนอื่น</p>
+            </div>
+
+            <!-- Footer -->
+            <div class="table-footer">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <span class="record-count" id="recordCount">แสดง <strong>0</strong> รายการ</span>
+                    <select class="page-size-select" id="pageSizeSelect" onchange="changePageSize()">
+                        <option value="20">20 / หน้า</option>
+                        <option value="50">50 / หน้า</option>
+                        <option value="100">100 / หน้า</option>
+                    </select>
+                </div>
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal สรุปสถิติ -->
+    <div class="modal-overlay" id="statModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                    </svg> สรุปสถานะนักเรียนทั้งหมด
+                </div>
+                <button class="close-modal-btn" onclick="closeStatModal()">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="modal-body" id="statModalBody"></div>
+        </div>
+    </div>
+
+    <!-- Modal Export (Excel/PDF) -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title" id="exportModalTitle">
+                    ส่งออกข้อมูล
+                </div>
+                <button class="close-modal-btn" onclick="closeExportModal()">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px; font-size: 0.9rem; color: var(--text-muted); background: rgba(99,102,241,0.08); padding: 12px; border-radius: 10px; border: 1px solid rgba(99,102,241,0.2);">
+                    <strong><svg width="14" height="14" style="display:inline; margin-top:-2px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> คอลัมน์พื้นฐาน:</strong><br>
+                    ลำดับ, รหัสนักเรียน, ชื่อ-สกุล (รวมคำนำหน้า)
+                </div>
+                
+                <label class="checkbox-label" style="margin-bottom: 15px; width: fit-content;">
+                    <input type="checkbox" id="exportCitizenId"> แสดงเลขประจำตัวประชาชน
+                </label>
+
+                <p style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-muted);">คอลัมน์ว่างเพิ่มเติม (สูงสุด 2 คอลัมน์):</p>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label class="checkbox-label" style="flex-shrink: 0; min-width: 110px;">
+                            <input type="checkbox" id="exportBlank1" onchange="document.getElementById('blank1Name').disabled = !this.checked"> เพิ่มคอลัมน์ 1
+                        </label>
+                        <input type="text" id="blank1Name" class="form-input" style="padding: 8px 12px; font-size: 0.85rem;" placeholder="ระบุชื่อคอลัมน์ (เช่น หมายเหตุ)" disabled>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label class="checkbox-label" style="flex-shrink: 0; min-width: 110px;">
+                            <input type="checkbox" id="exportBlank2" onchange="document.getElementById('blank2Name').disabled = !this.checked"> เพิ่มคอลัมน์ 2
+                        </label>
+                        <input type="text" id="blank2Name" class="form-input" style="padding: 8px 12px; font-size: 0.85rem;" placeholder="ระบุชื่อคอลัมน์ (เช่น ลายมือชื่อ)" disabled>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" style="background: rgba(100,116,139,0.2); color: var(--text-muted);" onclick="closeExportModal()">ยกเลิก</button>
+                <button class="btn excel-btn" id="confirmExportBtn" onclick="executeExport()">
+                    ส่งออก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 Student list update. All rights reserved. &nbsp;|&nbsp; <span>Thaigham-School Development</span>
+    </footer>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwGKkKFJhysM4U02sUEd-v01wTCd7pBiHxFcTi7gPNCWybgT1xT6Md3e6bZyWry2eZx/exec';
+        let allStudentData = [];
+        let currentData = []; // Data currently displayed/filtered
+
+        const searchInput = document.getElementById('searchInput');
+        const classSelect = document.getElementById('classSelect');
+        const statusSelect = document.getElementById('statusSelect');
+        const tableBody = document.getElementById('tableBody');
+        const tableWrapper = document.getElementById('tableWrapper');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const recordCount = document.getElementById('recordCount');
+
+        // Column Mapping for Export
+        const COLUMN_MAP = {
+            no: 'ลำดับ',
+            classroom: 'ห้องเรียน',
+            student_id: 'รหัสนักเรียน',
+            citizen_id: 'เลขประจำตัวประชาชน',
+            prefix: 'คำนำหน้า',
+            first_name: 'ชื่อ',
+            last_name: 'นามสกุล',
+            birth_date: 'วันเกิด',
+            remark: 'สถานะ'
+        };
+
+        // Initialize pdfMake fonts
+        pdfMake.fonts = {
+            THSarabunNew: {
+                normal: 'https://guykorat.github.io/font/THSarabunNew.ttf',
+                bold: 'https://guykorat.github.io/font/Sarabun-ExtraBold.ttf',
+                italics: 'https://guykorat.github.io/font/THSarabunNew.ttf',
+                bolditalics: 'https://guykorat.github.io/font/Sarabun-ExtraBold.ttf'
+            },
+            Charm: {
+                normal: 'https://guykorat.github.io/font/Charm-Bold.ttf',
+                bold: 'https://guykorat.github.io/font/Charm-Regular.ttf',
+            },
+            Prompt: {
+                normal: 'https://guykorat.github.io/font/Prompt-Regular.ttf',
+                bold: 'https://guykorat.github.io/font/Prompt-Bold.ttf',
+            },
+            Roboto: {
+                normal: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf',
+                bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf',
+                italics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Italic.ttf',
+                bolditalics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-MediumItalic.ttf'
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            applyTheme(savedTheme);
+            fetchData();
+            searchInput.addEventListener('input', filterData);
+            classSelect.addEventListener('change', filterData);
+            statusSelect.addEventListener('change', filterData);
+        });
+
+        function applyTheme(theme) {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            const label = document.getElementById('themeLabel');
+            if (theme === 'light') {
+                html.setAttribute('data-theme', 'light');
+                label.textContent = 'กลางคืน';
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m8.66-9H21M3 12H2m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14A7 7 0 0012 5z"/>`;
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                label.textContent = 'กลางวัน';
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75 9.75 9.75 0 018.25 6c0-1.332.26-2.6.728-3.752A9.753 9.753 0 003 12c0 5.385 4.365 9.75 9.75 9.75 4.944 0 9.051-3.688 9.75-8.424-.014.057-.03.114-.046.17l-.702-.514z"/>`;
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        function toggleFilter() {
+            const card = document.getElementById('filterCard');
+            const btn = card.querySelector('.filter-toggle');
+            const isOpen = card.classList.toggle('is-open');
+            btn.setAttribute('aria-expanded', isOpen);
+        }
+
+        async function fetchData() {
+            showLoading(true);
+            try {
+                const response = await fetch(API_URL + '?action=getStudents');
+                const data = await response.json();
+                allStudentData = data;
+                setupDropdown(data);
+                filterData(); // trigger render based on current filters
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณาตรวจสอบ URL หรือลองใหม่อีกครั้ง');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function formatThaiDate(dateStr) {
+            if (!dateStr || dateStr === '-') return "-";
+            try {
+                let date = new Date(dateStr);
+                let year, month, day;
+                if (isNaN(date.getTime())) {
+                    const parts = dateStr.split('T')[0].split(/[-/]/);
+                    if (parts.length >= 3) {
+                        year = parseInt(parts[0]);
+                        month = parseInt(parts[1]) - 1;
+                        day = parseInt(parts[2]);
+                    } else { return dateStr; }
+                } else {
+                    year = date.getFullYear();
+                    month = date.getMonth();
+                    day = date.getDate();
+                    if (year < 2400) year += 543;
+                }
+                const months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+                return `${day} ${months[month]} ${year}`;
+            } catch (e) { return dateStr; }
+        }
+
+        function setupDropdown(data) {
+            const classrooms = [...new Set(data.map(item => item.classroom))].sort();
+            classSelect.innerHTML = '<option value="">— แสดงทุกห้องเรียน —</option>';
+            classrooms.forEach(room => {
+                const opt = document.createElement('option');
+                opt.value = room;
+                opt.textContent = room;
+                classSelect.appendChild(opt);
+            });
+
+            const statuses = [...new Set(data.map(item => item.remark).filter(Boolean))].sort();
+            statusSelect.innerHTML = '<option value="">— แสดงทุกสถานะ —</option>';
+            statuses.forEach(st => {
+                const opt = document.createElement('option');
+                opt.value = st;
+                opt.textContent = st;
+                statusSelect.appendChild(opt);
+            });
+        }
+
+        function filterData() {
+            const term = searchInput.value.toLowerCase().trim();
+            const cls = classSelect.value;
+            const sts = statusSelect.value;
+            currentData = allStudentData.filter(s => {
+                const name = `${s.first_name} ${s.last_name}`.toLowerCase();
+                return name.includes(term) && (cls === '' || s.classroom === cls) && (sts === '' || s.remark === sts);
+            });
+            currentPage = 1;
+            renderPage();
+        }
+
+        let currentPage = 1;
+        let pageSize = 20;
+
+        function renderPage() {
+            tableBody.innerHTML = '';
+            if (currentData.length === 0) {
+                tableWrapper.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                recordCount.innerHTML = 'แสดง <strong>0</strong> รายการ';
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            tableWrapper.classList.remove('hidden');
+
+            const totalPages = Math.ceil(currentData.length / pageSize);
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, currentData.length);
+            const pageData = currentData.slice(start, end);
+
+            recordCount.innerHTML = `แสดง <strong>${start + 1}–${end}</strong> จาก <strong>${currentData.length}</strong> รายการ`;
+
+            pageData.forEach((s, i) => {
+                const fullName = `${s.prefix || ''}${s.first_name} ${s.last_name}`;
+                const globalIndex = start + i + 1;
+                const row = document.createElement('tr');
+                row.className = 'data-row';
+                row.style.animationDelay = `${Math.min(i * 20, 300)}ms`;
+                row.innerHTML = `
+                    <td class="td-no">${s.no || globalIndex}</td>
+                    <td class="hide-mobile"><span class="classroom-badge">${s.classroom}</span></td>
+                    <td class="td-id">${s.student_id}</td>
+                    <td class="hide-mobile"><span class="td-citizen">${s.citizen_id}</span></td>
+                    <td class="td-name">${fullName}</td>
+                    <td class="hide-mobile">${formatThaiDate(s.birth_date)}</td>
+                    <td class="hide-mobile td-remark">${s.remark || '-'}</td>
+                `;
+
+                const detailRow = document.createElement('tr');
+                detailRow.className = 'detail-row';
+                detailRow.innerHTML = `
+                    <td colspan="3">
+                        <div class="detail-content">
+                            <div class="detail-item"><span class="detail-label">ห้องเรียน</span><span class="detail-value">${s.classroom}</span></div>
+                            <div class="detail-item"><span class="detail-label">วันเกิด</span><span class="detail-value">${formatThaiDate(s.birth_date)}</span></div>
+                            <div class="detail-item"><span class="detail-label">สถานะ</span><span class="detail-value" style="color:var(--accent-purple)">${s.remark || '-'}</span></div>
+                            <div class="detail-item"><span class="detail-label">เลขบัตรประชาชน</span><span class="detail-value mono">${s.citizen_id}</span></div>
+                        </div>
+                    </td>
+                `;
+
+                row.addEventListener('click', () => {
+                    if (window.innerWidth <= 640) {
+                        const isOpen = detailRow.classList.toggle('is-open');
+                        row.classList.toggle('is-expanded', isOpen);
+                    }
+                });
+
+                tableBody.appendChild(row);
+                tableBody.appendChild(detailRow);
+            });
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            const pag = document.getElementById('pagination');
+            pag.innerHTML = '';
+            if (totalPages <= 1) return;
+            const mkBtn = (label, page, disabled = false, active = false) => {
+                const btn = document.createElement('button');
+                btn.className = 'page-btn' + (active ? ' active' : '');
+                btn.innerHTML = label;
+                btn.disabled = disabled;
+                if (!disabled) btn.onclick = () => { currentPage = page; renderPage(); document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+                return btn;
+            };
+
+            pag.appendChild(mkBtn('&#8592;', currentPage - 1, currentPage === 1));
+            const range = [];
+            for (let p = 1; p <= totalPages; p++) {
+                if (p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)) range.push(p);
+                else if (range[range.length - 1] !== '...') range.push('...');
+            }
+            range.forEach(p => {
+                if (p === '...') {
+                    const el = document.createElement('span'); el.textContent = '…';
+                    el.style.cssText = 'color:#475569;padding:0 4px;font-size:0.82rem;';
+                    pag.appendChild(el);
+                } else pag.appendChild(mkBtn(p, p, false, p === currentPage));
+            });
+            pag.appendChild(mkBtn('&#8594;', currentPage + 1, currentPage === totalPages));
+        }
+
+        function changePageSize() { pageSize = parseInt(document.getElementById('pageSizeSelect').value); currentPage = 1; renderPage(); }
+        function showLoading(on) {
+            if (on) { loadingState.classList.remove('hidden'); tableWrapper.classList.add('hidden'); emptyState.classList.add('hidden'); } 
+            else { loadingState.classList.add('hidden'); }
+        }
+
+        let exportType = ''; // 'excel' or 'pdf'
+
+        function openExportModal(type) {
+            if (currentData.length === 0) {
+                alert('ไม่มีข้อมูลสำหรับส่งออก');
+                return;
+            }
+            exportType = type;
+            const modal = document.getElementById('exportModal');
+            const title = document.getElementById('exportModalTitle');
+            const btn = document.getElementById('confirmExportBtn');
+
+            // Reset inputs
+            document.getElementById('exportCitizenId').checked = false;
+            document.getElementById('exportBlank1').checked = false;
+            document.getElementById('blank1Name').disabled = true;
+            document.getElementById('blank1Name').value = '';
+            document.getElementById('exportBlank2').checked = false;
+            document.getElementById('blank2Name').disabled = true;
+            document.getElementById('blank2Name').value = '';
+
+            if (type === 'excel') {
+                title.innerHTML = '<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg> ส่งออกไฟล์ Excel';
+                btn.className = 'btn excel-btn';
+                btn.innerHTML = 'สร้างไฟล์ Excel';
+            } else {
+                title.innerHTML = '<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> สร้างไฟล์ PDF';
+                btn.className = 'btn pdf-btn';
+                btn.innerHTML = 'Preview PDF';
+            }
+            modal.classList.add('is-active');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('is-active');
+        }
+
+        function executeExport() {
+            const config = {
+                citizenId: document.getElementById('exportCitizenId').checked,
+                blank1: document.getElementById('exportBlank1').checked ? (document.getElementById('blank1Name').value.trim() || 'คอลัมน์ว่าง 1') : null,
+                blank2: document.getElementById('exportBlank2').checked ? (document.getElementById('blank2Name').value.trim() || 'คอลัมน์ว่าง 2') : null,
+            };
+            
+            if (exportType === 'excel') {
+                exportExcel(config);
+            } else {
+                exportPDF(config);
+            }
+            closeExportModal();
+        }
+
+        function getRoomName() {
+            const cls = document.getElementById('classSelect').value;
+            return cls ? cls : "รวมทุกห้อง";
+        }
+
+        function exportExcel(config) {
+            const exportArray = currentData.map((s, idx) => {
+                let row = {};
+                row['ลำดับ'] = idx + 1;
+                row['รหัสนักเรียน'] = s.student_id || '-';
+                if (config.citizenId) row['เลขประจำตัวประชาชน'] = s.citizen_id || '-';
+                row['ชื่อ - นามสกุล'] = `${s.prefix || ''}${s.first_name || ''} ${s.last_name || ''}`.trim() || '-';
+                
+                if (config.blank1) row[config.blank1] = '';
+                if (config.blank2) row[config.blank2] = '';
+                
+                return row;
+            });
+
+            const ws = XLSX.utils.json_to_sheet(exportArray);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Students");
+            
+            const roomName = getRoomName();
+            const safeRoomName = roomName.replace(/[\/\\]/g, '_');
+            XLSX.writeFile(wb, `รายชื่อนักเรียน_${safeRoomName}.xlsx`);
+        }
+
+        function exportPDF(config) {
+            const roomName = getRoomName();
+            const tableBody = [];
+
+            // 1. Build Headers
+            const headers = ['ลำดับ', 'รหัสนักเรียน'];
+            if (config.citizenId) headers.push('เลขประจำตัวประชาชน');
+            headers.push('ชื่อ - นามสกุล');
+            if (config.blank1) headers.push(config.blank1);
+            if (config.blank2) headers.push(config.blank2);
+
+            const headerRow = headers.map(text => ({
+                text: text,
+                bold: true,
+                fillColor: '#eeeeee',
+                alignment: 'center',
+                margin: [0, 5, 0, 5]
+            }));
+            tableBody.push(headerRow);
+
+            // 2. Data Rows
+            currentData.forEach((s, idx) => {
+                const row = [];
+                // ลำดับ
+                row.push({ text: (idx + 1).toString(), alignment: 'center', margin: [0, 3, 0, 3] });
+                // รหัสนักเรียน
+                row.push({ text: (s.student_id || '-').toString(), alignment: 'center', margin: [0, 3, 0, 3] });
+                // เลขประจำตัวประชาชน
+                if (config.citizenId) {
+                    row.push({ text: (s.citizen_id || '-').toString(), alignment: 'center', margin: [0, 3, 0, 3] });
+                }
+                // ชื่อ - นามสกุล (รวมกันเพื่อประหยัดพื้นที่)
+                const fullName = `${s.prefix || ''}${s.first_name || ''} ${s.last_name || ''}`.trim() || '-';
+                row.push({ text: fullName, alignment: 'left', margin: [0, 3, 0, 3] });
+                // คอลัมน์ว่าง 1
+                if (config.blank1) row.push({ text: '', margin: [0, 3, 0, 3] });
+                // คอลัมน์ว่าง 2
+                if (config.blank2) row.push({ text: '', margin: [0, 3, 0, 3] });
+
+                tableBody.push(row);
+            });
+
+            // 3. Setup widths based on content
+            const widths = headers.map(h => {
+                if (h === 'ลำดับ') return 'auto';
+                if (h === 'รหัสนักเรียน' || h === 'เลขประจำตัวประชาชน') return 'auto';
+                if (h === 'ชื่อ - นามสกุล') return '*';
+                return '*'; // Blank columns take up remaining space evenly
+            });
+
+            // 4. Define Document Setup
+            const docDefinition = {
+                pageSize: 'A4',
+                pageOrientation: 'landscape',
+                pageMargins: [40, 60, 40, 50],
+                defaultStyle: {
+                    font: 'Prompt', // Using Prompt as requested
+                    fontSize: 10,
+                    color: '#1e293b'
+                },
+                header: function(currentPage, pageCount, pageSize) {
+                    return {
+                        text: `ใบรายชื่อนักเรียน ห้อง ${roomName}`,
+                        alignment: 'center',
+                        fontSize: 16,
+                        bold: true,
+                        margin: [0, 25, 0, 0]
+                    };
+                },
+                footer: function(currentPage, pageCount) {
+                    return {
+                        text: `หน้า ${currentPage} / ${pageCount}`,
+                        alignment: 'right',
+                        fontSize: 9,
+                        margin: [0, 10, 40, 0],
+                        color: '#64748b'
+                    };
+                },
+                content: [
+                    {
+                        table: {
+                            headerRows: 1, // ทำซ้ำหัวตารางในหน้าถัดไป
+                            widths: widths,
+                            body: tableBody
+                        },
+                        layout: {
+                            hLineWidth: function (i, node) { return (i === 0 || i === node.table.body.length) ? 1 : 0.5; },
+                            vLineWidth: function (i, node) { 
+                                // แสดงเส้นแนวตั้งด้านใน เพื่อให้เห็นช่องว่างที่สร้างเพิ่มชัดเจน
+                                return (i === 0 || i === node.table.widths.length) ? 0 : 0.5; 
+                            }, 
+                            hLineColor: function (i, node) { return '#cbd5e1'; },
+                            vLineColor: function (i, node) { return '#cbd5e1'; },
+                            paddingLeft: function(i, node) { return 4; },
+                            paddingRight: function(i, node) { return 4; },
+                        }
+                    }
+                ]
+            };
+
+            // Open PDF in new tab
+            pdfMake.createPdf(docDefinition).open();
+        }
+
+        const statModal = document.getElementById('statModal');
+        const statModalBody = document.getElementById('statModalBody');
+
+        function openStatModal() {
+            statModal.classList.add('is-active');
+            fetchStatData();
+        }
+
+        function closeStatModal() {
+            statModal.classList.remove('is-active');
+        }
+
+        statModal.addEventListener('click', (e) => {
+            if (e.target === statModal) closeStatModal();
+        });
+
+        // Close export modal on outside click
+        document.getElementById('exportModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('exportModal')) closeExportModal();
+        });
+
+        async function fetchStatData() {
+            statModalBody.innerHTML = `<div class="loading-state" style="padding: 30px;"><div class="spinner"></div><p style="margin-top: 10px; font-size:0.85rem">กำลังดึงข้อมูลสถิติ...</p></div>`;
+            try {
+                const response = await fetch(API_URL + '?action=getStats');
+                const stats = await response.json();
+                if (stats.error || stats.length === 0) {
+                    statModalBody.innerHTML = `<div style="text-align:center; color:#94a3b8; padding: 20px;">ไม่พบข้อมูลสถิติ หรือยังไม่ได้รันการคำนวณในชีต</div>`;
+                    return;
+                }
+                const COLOR_PALETTE = [
+                    { cls: 'color-green', hex: '#10b981' }, { cls: 'color-blue', hex: '#3b82f6' }, { cls: 'color-orange', hex: '#f97316' },
+                    { cls: 'color-yellow', hex: '#eab308' }, { cls: 'color-pink', hex: '#ec4899' }, { cls: 'color-cyan', hex: '#06b6d4' }, { cls: 'color-gray', hex: '#64748b' }
+                ];
+                const rowItems = stats.filter(i => !i.status.includes('รวม'));
+                const totalItem = stats.find(i => i.status.includes('รวม'));
+                const grandTotal = totalItem ? Number(totalItem.count) : rowItems.reduce((s, i) => s + Number(i.count), 0);
+
+                let listHtml = ''; let colorIdx = 0;
+                stats.forEach(item => {
+                    const isTotal = item.status.includes('รวม');
+                    const color = isTotal ? null : COLOR_PALETTE[colorIdx % COLOR_PALETTE.length];
+                    if (!isTotal) colorIdx++;
+                    const count = Number(item.count);
+                    const pct = isTotal ? 100 : (grandTotal > 0 ? (count / grandTotal * 100) : 0);
+                    listHtml += `
+                        <div class="stat-item ${isTotal ? 'total-row' : color.cls}">
+                            <span class="stat-label"><span class="stat-dot"></span>${item.status}</span>
+                            <span class="stat-value-wrap">
+                                <span class="stat-pct" style="${color ? `color:${color.hex}` : 'color:#a5b4fc'}">${pct.toFixed(1)}%</span>
+                                <span class="stat-value">${item.count}</span>
+                            </span>
+                        </div>
+                    `;
+                });
+                statModalBody.innerHTML = `<div class="chart-wrap"><div class="donut-canvas-wrap"><canvas id="statDonutChart"></canvas></div></div>${listHtml}`;
+
+                const chartColors = rowItems.map((_, i) => COLOR_PALETTE[i % COLOR_PALETTE.length].hex);
+                const centerTextPlugin = {
+                    id: 'centerText',
+                    afterDraw(chart) {
+                        const { ctx, chartArea: { top, bottom, left, right } } = chart;
+                        const cx = (left + right) / 2; const cy = (top + bottom) / 2;
+                        ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                        ctx.fillStyle = document.documentElement.getAttribute('data-theme') === 'light' ? '#1e293b' : '#ffffff';
+                        ctx.font = 'bold 2rem Sarabun, sans-serif'; ctx.fillText(grandTotal, cx, cy - 10);
+                        ctx.fillStyle = '#94a3b8'; ctx.font = '0.72rem Sarabun, sans-serif'; ctx.fillText('นักเรียนทั้งหมด', cx, cy + 16);
+                        ctx.restore();
+                    }
+                };
+
+                new Chart(document.getElementById('statDonutChart'), {
+                    type: 'doughnut',
+                    data: { labels: rowItems.map(i => i.status), datasets: [{ data: rowItems.map(i => Number(i.count)), backgroundColor: chartColors, hoverBackgroundColor: chartColors.map(c=>c+'cc'), borderWidth: 2, borderColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : 'rgba(15,23,42,0.8)', hoverOffset: 10 }] },
+                    options: { cutout: '68%', animation: { animateScale: true, duration: 800 }, plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(15,23,42,0.92)', borderColor: 'rgba(99,102,241,0.35)', borderWidth: 1, titleColor: '#e2e8f0', bodyColor: '#94a3b8', padding: 10, callbacks: { label(ctx) { const pct = grandTotal > 0 ? (ctx.parsed / grandTotal * 100).toFixed(1) : 0; return `  ${ctx.parsed} คน  (${pct}%)`; } } } } },
+                    plugins: [centerTextPlugin]
+                });
+            } catch (error) { statModalBody.innerHTML = `<div style="text-align:center; color:#ef4444; padding: 20px;">เกิดข้อผิดพลาดในการโหลดสถิติ</div>`; }
+        }
+    </script>
+</body>
+</html>
