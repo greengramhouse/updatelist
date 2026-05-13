@@ -328,7 +328,7 @@
                 <h1>ระบบฐานข้อมูลนักเรียน</h1>
                 <p>ตรวจสอบข้อมูลนักเรียน 1/2569</p>
             </div>
-            <div class="header-badge hide-mobile">LIST STUDENT DATA | Update 13-05-2569</div>
+            <div class="header-badge hide-mobile">LIST STUDENT DATA | Update 28-04-2569</div>
             <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="เปลี่ยนโหมดสี">
                 <svg id="themeIcon" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -1079,6 +1079,28 @@
                     { text: '', alignment: 'center', margin: [0, 2, 0, 2] }        // ช่องว่างให้เขียน
                 ]);
             });
+
+            // เพิ่มแถวว่าง 5 แถวให้ครูกรอกเพิ่มได้
+            const extraRowsCount = 5;
+            const currentTotal = currentData.length;
+            for (let i = 0; i < extraRowsCount; i++) {
+                let indexStr = (currentTotal + i + 1).toString();
+                let amountStr = '160';
+                
+                if (numberFormat === 'thai') {
+                    indexStr = toThaiNumber(indexStr);
+                    amountStr = toThaiNumber(amountStr);
+                }
+
+                tableBody.push([
+                    { text: indexStr, alignment: 'center', margin: [0, 2, 0, 2] },
+                    { text: '', alignment: 'left', margin: [0, 2, 0, 2] },           // เว้นว่างให้เติมชื่อ
+                    { text: amountStr, alignment: 'center', margin: [0, 2, 0, 2] },     // ล็อกจำนวนเงิน 160 ไว้
+                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },         // ช่องว่างวันที่
+                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },         // ช่องว่างชื่อผู้ปกครอง
+                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] }          // ช่องว่างเบอร์โทร
+                ]);
+            }
 
             // ปีการศึกษา
             let schoolYear = '2569';
