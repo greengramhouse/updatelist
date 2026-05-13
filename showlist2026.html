@@ -160,12 +160,16 @@
         .stat-btn { color: var(--accent-purple); background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.25); }
         .stat-btn:hover { background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.5); transform: translateY(-1px); }
 
-        /* New Export Buttons */
+        /* Export Buttons */
         .excel-btn { color: var(--success); background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); }
         .excel-btn:hover { background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); transform: translateY(-1px); }
         
         .pdf-btn { color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.25); }
         .pdf-btn:hover { background: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.5); transform: translateY(-1px); }
+
+        /* New Insurance PDF Button */
+        .insurance-btn { color: #d97706; background: rgba(217, 119, 6, 0.1); border: 1px solid rgba(217, 119, 6, 0.25); }
+        .insurance-btn:hover { background: rgba(217, 119, 6, 0.2); border-color: rgba(217, 119, 6, 0.5); transform: translateY(-1px); }
 
         /* Table */
         .table-scroll { overflow-x: auto; }
@@ -387,6 +391,12 @@
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg> PDF
+                    </button>
+                    <!-- ปุ่มพิมพ์ใบรับเงินประกันอุบัติเหตุเพิ่มใหม่ -->
+                    <button class="btn insurance-btn" onclick="exportInsurancePDF()">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg> พิมพ์ใบรับเงินประกัน
                     </button>
                     <button class="btn stat-btn" onclick="openStatModal()">
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -912,7 +922,7 @@
                 pageOrientation: 'landscape',
                 pageMargins: [40, 60, 40, 50],
                 defaultStyle: {
-                    font: 'Prompt', // Using Prompt as requested
+                    font: 'Prompt', // Using Prompt as requested by previous spec
                     fontSize: 10,
                     color: '#1e293b'
                 },
@@ -944,7 +954,6 @@
                         layout: {
                             hLineWidth: function (i, node) { return (i === 0 || i === node.table.body.length) ? 1 : 0.5; },
                             vLineWidth: function (i, node) { 
-                                // แสดงเส้นแนวตั้งด้านใน เพื่อให้เห็นช่องว่างที่สร้างเพิ่มชัดเจน
                                 return (i === 0 || i === node.table.widths.length) ? 0 : 0.5; 
                             }, 
                             hLineColor: function (i, node) { return '#cbd5e1'; },
@@ -957,6 +966,88 @@
             };
 
             // Open PDF in new tab
+            pdfMake.createPdf(docDefinition).open();
+        }
+
+        // ===== ฟังก์ชันสร้างเอกสาร ใบรับเงินประกันอุบัติเหตุ =====
+        function exportInsurancePDF() {
+            if (currentData.length === 0) {
+                alert('ไม่มีข้อมูลสำหรับพิมพ์ใบรับเงินประกัน');
+                return;
+            }
+
+            const roomVal = document.getElementById('classSelect').value;
+            const roomName = roomVal ? roomVal : ".........";
+            const studentCount = currentData.length;
+
+            const tableBody = [];
+
+            // หัวคอลัมน์ของตาราง (Font: THSarabunNew, Size: 12, ปกติ ไม่หนา)
+            tableBody.push([
+                { text: 'ลำดับ\nที่', alignment: 'center', margin: [0, 2, 0, 2] },
+                { text: 'ชื่อ-สกุล (นักเรียน)', alignment: 'center', margin: [0, 2, 0, 2] },
+                { text: 'จำนวน\nเงิน', alignment: 'center', margin: [0, 2, 0, 2] },
+                { text: 'วันที่จ่าย', alignment: 'center', margin: [0, 2, 0, 2] },
+                { text: 'ชื่อ-สกุล ผู้ปกครอง', alignment: 'center', margin: [0, 2, 0, 2] },
+                { text: 'เบอร์โทรผู้ปกครอง', alignment: 'center', margin: [0, 2, 0, 2] }
+            ]);
+
+            // ข้อมูลตารางแต่ละแถว
+            currentData.forEach((s, idx) => {
+                const fullName = `${s.prefix || ''}${s.first_name || ''} ${s.last_name || ''}`.trim() || '-';
+                tableBody.push([
+                    { text: (idx + 1).toString(), alignment: 'center', margin: [0, 2, 0, 2] },
+                    { text: fullName, alignment: 'left', margin: [0, 2, 0, 2] },
+                    { text: '160', alignment: 'center', margin: [0, 2, 0, 2] },   // ล็อกจำนวนเงิน 160
+                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },       // ช่องว่างให้เขียน
+                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },       // ช่องว่างให้เขียน
+                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] }        // ช่องว่างให้เขียน
+                ]);
+            });
+
+            // ตั้งค่าเอกสาร PDF (แนวตั้ง, ขอบเผื่อที่ให้ Header)
+            const docDefinition = {
+                pageSize: 'A4',
+                pageOrientation: 'portrait',
+                // ปรับขอบล่าง (bottom margin) จาก 40 เป็น 50 เพื่อแก้ปัญหาเส้นเปล่าโผล่เวลากระดาษตัดหน้า
+                pageMargins: [40, 75, 40, 50], 
+                defaultStyle: {
+                    font: 'THSarabunNew', // ใช้ THSarabunNew ตามที่ต้องการ
+                    fontSize: 12,         // ขนาด 12
+                    color: '#000000',
+                    bold: false           // ป้องกันตัวหนา
+                },
+                // ฟังก์ชัน Header จะทำซ้ำในทุกหน้าที่ถูกสร้างขึ้น
+                header: function(currentPage, pageCount, pageSize) {
+                    return {
+                        margin: [40, 30, 40, 0],
+                        text: [
+                            { text: `บันทึกการจ่ายเงินประกันอุบัติเหตุนักเรียน ระดับชั้น ${roomName} ปีการศึกษา 2569\n`, alignment: 'center', fontSize: 12 },
+                            { text: `จำนวน ${studentCount} คน ครูประจำชั้น ..............................................................`, alignment: 'center', fontSize: 12 }
+                        ]
+                    };
+                },
+                content: [
+                    {
+                        table: {
+                            headerRows: 1, // บังคับทำซ้ำ หัวตาราง (row 0) ในหน้าถัดไปอัตโนมัติ
+                            dontBreakRows: true, // เพิ่ม property นี้เพื่อป้องกันไม่ให้แถวขาดกลางหน้า (ช่วยแก้ปัญหาขอบล่างได้ด้วย)
+                            widths: [25, 130, 35, 55, 125, '*'], // แบ่งความกว้างตามต้นฉบับรูป
+                            body: tableBody
+                        },
+                        layout: {
+                            hLineWidth: function () { return 0.5; }, // เส้นแนวนอนแบบบาง
+                            vLineWidth: function () { return 0.5; }, // เส้นแนวตั้งแบบบาง
+                            paddingLeft: function() { return 4; },
+                            paddingRight: function() { return 4; },
+                            paddingTop: function() { return 1; },    // ปรับ padding ให้ตารางกระชับขึ้นเล็กน้อย
+                            paddingBottom: function() { return 1; }
+                        }
+                    }
+                ]
+            };
+
+            // สร้าง PDF และเปิดในแท็บใหม่
             pdfMake.createPdf(docDefinition).open();
         }
 
