@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>student list update</title>
+    <title>Student List Update</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     
@@ -167,7 +167,6 @@
         .pdf-btn { color: #f43f5e; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.25); }
         .pdf-btn:hover { background: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.5); transform: translateY(-1px); }
 
-        /* New Insurance PDF Button */
         .insurance-btn { color: #d97706; background: rgba(217, 119, 6, 0.1); border: 1px solid rgba(217, 119, 6, 0.25); }
         .insurance-btn:hover { background: rgba(217, 119, 6, 0.2); border-color: rgba(217, 119, 6, 0.5); transform: translateY(-1px); }
 
@@ -397,7 +396,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg> PDF
                     </button>
-                    <!-- ปุ่มพิมพ์ใบรับเงินประกันอุบัติเหตุเพิ่มใหม่ -->
                     <button class="btn insurance-btn" onclick="openInsuranceModal()">
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -515,7 +513,7 @@
         </div>
     </div>
 
-    <!-- Modal Export (Excel/PDF) ที่หายไป นำกลับมาใส่ตรงนี้ -->
+    <!-- Modal Export (Excel/PDF) -->
     <div class="modal-overlay" id="exportModal">
         <div class="modal-card">
             <div class="modal-header">
@@ -885,8 +883,17 @@
             const exportArray = currentData.map((s, idx) => {
                 let row = {};
                 row['ลำดับ'] = idx + 1;
-                row['รหัสนักเรียน'] = s.student_id || '-';
-                if (config.citizenId) row['เลขประจำตัวประชาชน'] = s.citizen_id || '-';
+                
+                // การแก้ไขปัญหาสำหรับ Excel:
+                // เติมอักขระพิเศษ \u200B (Zero-width space) ไว้ท้ายข้อมูลรหัสนักเรียนและเลขประชาชน
+                // เพื่อบังคับให้โปรแกรม Excel มองว่าเซลล์นี้เป็นข้อความ (Text) ป้องกันตัวเลขกลายเป็น Scientific notation หรือ 0 หาย
+
+                row['รหัสนักเรียน'] = s.student_id ? String(s.student_id) + '\u200B' : '-';
+                
+                if (config.citizenId) {
+                    row['เลขประจำตัวประชาชน'] = s.citizen_id ? String(s.citizen_id) + '\u200B' : '-';
+                }
+                
                 row['ชื่อ - นามสกุล'] = `${s.prefix || ''}${s.first_name || ''} ${s.last_name || ''}`.trim() || '-';
                 
                 if (config.blank1) row[config.blank1] = '';
@@ -1094,11 +1101,11 @@
 
                 tableBody.push([
                     { text: indexStr, alignment: 'center', margin: [0, 2, 0, 2] },
-                    { text: '', alignment: 'left', margin: [0, 2, 0, 2] },           // เว้นว่างให้เติมชื่อ
-                    { text: amountStr, alignment: 'center', margin: [0, 2, 0, 2] },     // ล็อกจำนวนเงิน 160 ไว้
-                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },         // ช่องว่างวันที่
-                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },         // ช่องว่างชื่อผู้ปกครอง
-                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] }          // ช่องว่างเบอร์โทร
+                    { text: '', alignment: 'left', margin: [0, 2, 0, 2] },            // เว้นว่างให้เติมชื่อ
+                    { text: amountStr, alignment: 'center', margin: [0, 2, 0, 2] },      // ล็อกจำนวนเงิน 160 ไว้
+                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },          // ช่องว่างวันที่
+                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },          // ช่องว่างชื่อผู้ปกครอง
+                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] }           // ช่องว่างเบอร์โทร
                 ]);
             }
 
