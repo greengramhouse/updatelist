@@ -87,8 +87,6 @@
         html[data-theme="light"] .loading-state p, html[data-theme="light"] .empty-state p { color: var(--text-muted); }
         html[data-theme="light"] footer { background: var(--footer-bg); border-color: rgba(99,102,241,0.15); color: #94a3b8; }
         html[data-theme="light"] .modal-overlay { background: rgba(100,116,139,0.35); }
-        
-        /* Modal Additions for Export */
         html[data-theme="light"] .modal-footer { background: rgba(99,102,241,0.03); border-color: rgba(99,102,241,0.15); }
         html[data-theme="light"] .checkbox-label { color: var(--text); background: rgba(99,102,241,0.04); border-color: rgba(99,102,241,0.2); }
         html[data-theme="light"] .checkbox-label:hover { background: rgba(99,102,241,0.1); }
@@ -159,7 +157,6 @@
         .stat-btn { color: var(--accent-purple); background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.25); }
         .stat-btn:hover { background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.5); transform: translateY(-1px); }
 
-        /* Export Buttons */
         .excel-btn { color: var(--success); background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); }
         .excel-btn:hover { background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); transform: translateY(-1px); }
         
@@ -169,7 +166,6 @@
         .insurance-btn { color: #d97706; background: rgba(217, 119, 6, 0.1); border: 1px solid rgba(217, 119, 6, 0.25); }
         .insurance-btn:hover { background: rgba(217, 119, 6, 0.2); border-color: rgba(217, 119, 6, 0.5); transform: translateY(-1px); }
 
-        /* Table */
         .table-scroll { overflow-x: auto; }
         .table-scroll::-webkit-scrollbar { height: 5px; }
         .table-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -207,7 +203,6 @@
         .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .page-size-select { background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(99, 102, 241, 0.22); border-radius: 8px; color: var(--text-muted); font-family: 'Sarabun', sans-serif; font-size: 0.8rem; padding: 4px 8px; cursor: pointer; outline: none; }
 
-        /* ===== MODALS ===== */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 15, 25, 0.8); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; padding: 20px; }
         .modal-overlay.is-active { opacity: 1; visibility: visible; }
         .modal-card { background: var(--modal-card-bg); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); transform: translateY(20px) scale(0.95); transition: all 0.3s ease; overflow: hidden; display: flex; flex-direction: column; }
@@ -221,18 +216,15 @@
         .modal-body::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 99px; }
         .modal-footer { padding: 16px 24px; border-top: 1px solid rgba(99, 102, 241, 0.15); display: flex; justify-content: flex-end; gap: 12px; background: rgba(15, 23, 42, 0.4); }
 
-        /* Export Modal Checkboxes */
         .checkbox-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--text); cursor: pointer; background: rgba(30, 41, 59, 0.6); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(99, 102, 241, 0.15); transition: all 0.2s; }
         .checkbox-label:hover { background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); }
         .checkbox-label input[type="checkbox"], .radio-label input[type="radio"] { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
 
-        /* Insurance Modal Radio Buttons */
         .radio-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .radio-label { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; color: var(--text); cursor: pointer; background: rgba(30, 41, 59, 0.6); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(99, 102, 241, 0.15); transition: all 0.2s; }
         .radio-label:hover { background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); }
-        
-        /* Stats Styles */
+
         .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(99, 102, 241, 0.1); border-radius: 12px; margin-bottom: 10px; transition: transform 0.15s ease, box-shadow 0.15s ease; }
         .stat-item:hover { transform: translateX(3px); }
         .stat-item.color-green { background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25); }
@@ -267,7 +259,6 @@
         .stat-pct { font-size: 0.82rem; font-weight: 600; opacity: 0.85; }
         .stat-item.total-row .stat-pct { color: #a5b4fc !important; }
 
-        /* Theme Toggle & Charts */
         .theme-toggle { display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.1); border: 1.5px solid rgba(255, 255, 255, 0.2); border-radius: 99px; padding: 6px 14px; cursor: pointer; font-family: 'Sarabun', sans-serif; font-size: 0.78rem; font-weight: 600; color: #fff; letter-spacing: 0.04em; transition: background 0.2s, border-color 0.2s, transform 0.15s; white-space: nowrap; flex-shrink: 0; }
         .theme-toggle:hover { background: rgba(255, 255, 255, 0.18); border-color: rgba(255,255,255,0.35); transform: translateY(-1px); }
         .theme-toggle svg { flex-shrink: 0; transition: transform 0.4s ease; }
@@ -315,7 +306,6 @@
 </head>
 
 <body>
-    <!-- Header -->
     <header>
         <div class="header-inner">
             <div class="logo-wrap">
@@ -337,7 +327,6 @@
         </div>
     </header>
 
-    <!-- Main -->
     <main>
         <!-- Filter -->
         <div class="filter-card is-open" id="filterCard">
@@ -1027,18 +1016,20 @@
                     {
                         table: {
                             headerRows: 1, // ทำซ้ำหัวตารางในหน้าถัดไป
+                            // ลบ dontBreakRows ออกเพื่อป้องกันบั๊กวาด border ทิ้งไว้ที่ก้นหน้า (Ghost Row)
                             widths: widths,
                             body: tableBody
                         },
+                        // ปรับแต่ง Layout ใหม่เพื่อให้ตีเส้นสวยงามและไม่สับสนเวลาตัดขึ้นหน้าใหม่
                         layout: {
                             hLineWidth: function (i, node) { return (i === 0 || i === node.table.body.length) ? 1 : 0.5; },
-                            vLineWidth: function (i, node) { 
-                                return (i === 0 || i === node.table.widths.length) ? 0 : 0.5; 
-                            }, 
+                            vLineWidth: function (i, node) { return (i === 0 || i === node.table.widths.length) ? 1 : 0.5; }, 
                             hLineColor: function (i, node) { return '#cbd5e1'; },
                             vLineColor: function (i, node) { return '#cbd5e1'; },
-                            paddingLeft: function(i, node) { return 4; },
-                            paddingRight: function(i, node) { return 4; },
+                            paddingLeft: function(i, node) { return 6; },
+                            paddingRight: function(i, node) { return 6; },
+                            paddingTop: function(i, node) { return 3; },
+                            paddingBottom: function(i, node) { return 3; }
                         }
                     }
                 ]
@@ -1151,7 +1142,7 @@
             const docDefinition = {
                 pageSize: 'A4',
                 pageOrientation: 'portrait',
-                // ปรับขอบล่าง (bottom margin) จาก 40 เป็น 50 เพื่อแก้ปัญหาเส้นเปล่าโผล่เวลากระดาษตัดหน้า
+                // ปรับขอบล่าง (bottom margin) จาก 40 เป็น 50
                 pageMargins: [40, 75, 40, 50], 
                 defaultStyle: {
                     font: 'THSarabunNew', // ใช้ THSarabunNew ตามที่ต้องการ
@@ -1173,17 +1164,20 @@
                     {
                         table: {
                             headerRows: 1, // บังคับทำซ้ำ หัวตาราง (row 0) ในหน้าถัดไปอัตโนมัติ
-                            dontBreakRows: true, // เพิ่ม property นี้เพื่อป้องกันไม่ให้แถวขาดกลางหน้า (ช่วยแก้ปัญหาขอบล่างได้ด้วย)
+                            // *** นำ dontBreakRows: true ออก ***
+                            // เพราะเมื่อใช้กับ Table ที่บรรทัดไม่สูงมากอย่างกรณีนี้ มักจะทำให้ pdfMake คำนวณขอบพลาด 
+                            // และวาด "เส้นขอบบนของบรรทัดถัดไป" ทิ้งไว้ที่ท้ายหน้ากระดาษเดิม จนดูเหมือนเป็น "แถวว่างๆ" โผล่มา
                             widths: [25, 130, 35, 55, 125, '*'], // แบ่งความกว้างตามต้นฉบับรูป
                             body: tableBody
                         },
+                        // ปรับแต่ง Layout เพื่อให้การตีเส้นขอบรัดกุมขึ้นเวลาข้ามหน้ากระดาษ
                         layout: {
-                            hLineWidth: function () { return 0.5; }, // เส้นแนวนอนแบบบาง
-                            vLineWidth: function () { return 0.5; }, // เส้นแนวตั้งแบบบาง
+                            hLineWidth: function (i, node) { return (i === 0 || i === node.table.body.length) ? 1 : 0.5; }, 
+                            vLineWidth: function (i, node) { return (i === 0 || i === node.table.widths.length) ? 1 : 0.5; },
                             paddingLeft: function() { return 4; },
                             paddingRight: function() { return 4; },
-                            paddingTop: function() { return 1; },    // ปรับ padding ให้ตารางกระชับขึ้นเล็กน้อย
-                            paddingBottom: function() { return 1; }
+                            paddingTop: function() { return 2; },    
+                            paddingBottom: function() { return 2; }
                         }
                     }
                 ]
