@@ -930,8 +930,7 @@
                 bold: true,
                 fontSize: 12,
                 fillColor: '#eeeeee',
-                alignment: 'center',
-                margin: [0, 5, 0, 5]
+                alignment: 'center'
             }));
             tableBody.push(headerRow);
 
@@ -942,30 +941,30 @@
                 // ลำดับ
                 let indexStr = (idx + 1).toString();
                 if (config.numberFormat === 'thai') indexStr = toThaiNumber(indexStr);
-                row.push({ text: indexStr, alignment: 'center', margin: [0, 3, 0, 3] });
+                row.push({ text: indexStr, alignment: 'center' });
                 
                 // รหัสนักเรียน
                 if (config.studentId) {
                     let stuId = (s.student_id || '-').toString();
                     if (config.numberFormat === 'thai' && stuId !== '-') stuId = toThaiNumber(stuId);
-                    row.push({ text: stuId, alignment: 'center', margin: [0, 3, 0, 3] });
+                    row.push({ text: stuId, alignment: 'center' });
                 }
 
                 // เลขประจำตัวประชาชน
                 if (config.citizenId) {
                     let citId = (s.citizen_id || '-').toString();
                     if (config.numberFormat === 'thai' && citId !== '-') citId = toThaiNumber(citId);
-                    row.push({ text: citId, alignment: 'center', margin: [0, 3, 0, 3] });
+                    row.push({ text: citId, alignment: 'center' });
                 }
 
                 // ชื่อ - นามสกุล
                 const fullName = `${s.prefix || ''}${s.first_name || ''} ${s.last_name || ''}`.trim() || '-';
-                row.push({ text: fullName, alignment: 'left', margin: [0, 3, 0, 3] });
+                row.push({ text: fullName, alignment: 'left' });
                 
                 // คอลัมน์ว่าง 1
-                if (config.blank1) row.push({ text: '', margin: [0, 3, 0, 3] });
+                if (config.blank1) row.push({ text: '' });
                 // คอลัมน์ว่าง 2
-                if (config.blank2) row.push({ text: '', margin: [0, 3, 0, 3] });
+                if (config.blank2) row.push({ text: '' });
 
                 tableBody.push(row);
             });
@@ -982,7 +981,7 @@
             const docDefinition = {
                 pageSize: 'A4',
                 pageOrientation: 'portrait',
-                pageMargins: [40, 60, 40, 50],
+                pageMargins: [40, 60, 40, 60],
                 defaultStyle: {
                     font: 'THSarabunNew', 
                     fontSize: 14,
@@ -1016,11 +1015,10 @@
                     {
                         table: {
                             headerRows: 1, // ทำซ้ำหัวตารางในหน้าถัดไป
-                            // ลบ dontBreakRows ออกเพื่อป้องกันบั๊กวาด border ทิ้งไว้ที่ก้นหน้า (Ghost Row)
                             widths: widths,
                             body: tableBody
                         },
-                        // ปรับแต่ง Layout ใหม่เพื่อให้ตีเส้นสวยงามและไม่สับสนเวลาตัดขึ้นหน้าใหม่
+                        // ปรับแต่ง Layout ใหม่และใช้ padding แทน margin ใน cell เพื่อแก้บั๊กเส้นว่าง (Ghost Row)
                         layout: {
                             hLineWidth: function (i, node) { return (i === 0 || i === node.table.body.length) ? 1 : 0.5; },
                             vLineWidth: function (i, node) { return (i === 0 || i === node.table.widths.length) ? 1 : 0.5; }, 
@@ -1028,8 +1026,8 @@
                             vLineColor: function (i, node) { return '#cbd5e1'; },
                             paddingLeft: function(i, node) { return 6; },
                             paddingRight: function(i, node) { return 6; },
-                            paddingTop: function(i, node) { return 3; },
-                            paddingBottom: function(i, node) { return 3; }
+                            paddingTop: function(i, node) { return 5; },
+                            paddingBottom: function(i, node) { return 5; }
                         }
                     }
                 ]
@@ -1082,12 +1080,12 @@
 
             // หัวคอลัมน์ของตาราง (Font: THSarabunNew, Size: 12, ปกติ ไม่หนา)
             tableBody.push([
-                { text: 'ลำดับ\nที่', alignment: 'center', margin: [0, 2, 0, 2] },
-                { text: 'ชื่อ-สกุล (นักเรียน)', alignment: 'center', margin: [0, 2, 0, 2] },
-                { text: 'จำนวน\nเงิน', alignment: 'center', margin: [0, 2, 0, 2] },
-                { text: 'วันที่จ่าย', alignment: 'center', margin: [0, 2, 0, 2] },
-                { text: 'ชื่อ-สกุล ผู้ปกครอง', alignment: 'center', margin: [0, 2, 0, 2] },
-                { text: 'เบอร์โทรผู้ปกครอง', alignment: 'center', margin: [0, 2, 0, 2] }
+                { text: 'ลำดับ\nที่', alignment: 'center' },
+                { text: 'ชื่อ-สกุล (นักเรียน)', alignment: 'center' },
+                { text: 'จำนวน\nเงิน', alignment: 'center' },
+                { text: 'วันที่จ่าย', alignment: 'center' },
+                { text: 'ชื่อ-สกุล ผู้ปกครอง', alignment: 'center' },
+                { text: 'เบอร์โทรผู้ปกครอง', alignment: 'center' }
             ]);
 
             // ข้อมูลตารางแต่ละแถว
@@ -1103,12 +1101,12 @@
                 }
 
                 tableBody.push([
-                    { text: indexStr, alignment: 'center', margin: [0, 2, 0, 2] },
-                    { text: fullName, alignment: 'left', margin: [0, 2, 0, 2] },
-                    { text: amountStr, alignment: 'center', margin: [0, 2, 0, 2] },   // ล็อกจำนวนเงิน 160
-                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },       // ช่องว่างให้เขียน
-                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },       // ช่องว่างให้เขียน
-                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] }        // ช่องว่างให้เขียน
+                    { text: indexStr, alignment: 'center' },
+                    { text: fullName, alignment: 'left' },
+                    { text: amountStr, alignment: 'center' },
+                    { text: '', alignment: 'center' },
+                    { text: '', alignment: 'center' },
+                    { text: '', alignment: 'center' }
                 ]);
             });
 
@@ -1125,12 +1123,12 @@
                 }
 
                 tableBody.push([
-                    { text: indexStr, alignment: 'center', margin: [0, 2, 0, 2] },
-                    { text: '', alignment: 'left', margin: [0, 2, 0, 2] },             // เว้นว่างให้เติมชื่อ
-                    { text: amountStr, alignment: 'center', margin: [0, 2, 0, 2] },      // ล็อกจำนวนเงิน 160 ไว้
-                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },          // ช่องว่างวันที่
-                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] },          // ช่องว่างชื่อผู้ปกครอง
-                    { text: '', alignment: 'center', margin: [0, 2, 0, 2] }           // ช่องว่างเบอร์โทร
+                    { text: indexStr, alignment: 'center' },
+                    { text: '', alignment: 'left' },
+                    { text: amountStr, alignment: 'center' },
+                    { text: '', alignment: 'center' },
+                    { text: '', alignment: 'center' },
+                    { text: '', alignment: 'center' }
                 ]);
             }
 
@@ -1142,8 +1140,8 @@
             const docDefinition = {
                 pageSize: 'A4',
                 pageOrientation: 'portrait',
-                // ปรับขอบล่าง (bottom margin) จาก 40 เป็น 50
-                pageMargins: [40, 75, 40, 50], 
+                // ปรับขอบล่าง (bottom margin) ให้ห่างจากขอบมากขึ้น
+                pageMargins: [40, 75, 40, 60], 
                 defaultStyle: {
                     font: 'THSarabunNew', // ใช้ THSarabunNew ตามที่ต้องการ
                     fontSize: 12,         // ขนาด 12
@@ -1164,20 +1162,17 @@
                     {
                         table: {
                             headerRows: 1, // บังคับทำซ้ำ หัวตาราง (row 0) ในหน้าถัดไปอัตโนมัติ
-                            // *** นำ dontBreakRows: true ออก ***
-                            // เพราะเมื่อใช้กับ Table ที่บรรทัดไม่สูงมากอย่างกรณีนี้ มักจะทำให้ pdfMake คำนวณขอบพลาด 
-                            // และวาด "เส้นขอบบนของบรรทัดถัดไป" ทิ้งไว้ที่ท้ายหน้ากระดาษเดิม จนดูเหมือนเป็น "แถวว่างๆ" โผล่มา
                             widths: [25, 130, 35, 55, 125, '*'], // แบ่งความกว้างตามต้นฉบับรูป
                             body: tableBody
                         },
-                        // ปรับแต่ง Layout เพื่อให้การตีเส้นขอบรัดกุมขึ้นเวลาข้ามหน้ากระดาษ
+                        // ปรับแต่ง Layout ใหม่ ไม่ใช้ margin ในระดับ Cell เลย ใช้ padding ล้วนๆ เพื่อแก้บั๊ก Ghost Row ของ pdfMake
                         layout: {
                             hLineWidth: function (i, node) { return (i === 0 || i === node.table.body.length) ? 1 : 0.5; }, 
                             vLineWidth: function (i, node) { return (i === 0 || i === node.table.widths.length) ? 1 : 0.5; },
                             paddingLeft: function() { return 4; },
                             paddingRight: function() { return 4; },
-                            paddingTop: function() { return 2; },    
-                            paddingBottom: function() { return 2; }
+                            paddingTop: function(i) { return i === 0 ? 5 : 3; },    
+                            paddingBottom: function(i) { return i === 0 ? 5 : 3; }
                         }
                     }
                 ]
