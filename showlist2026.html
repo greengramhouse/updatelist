@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student List Update</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -527,12 +526,30 @@
             <div class="modal-body">
                 <div style="margin-bottom: 15px; font-size: 0.9rem; color: var(--text-muted); background: rgba(99,102,241,0.08); padding: 12px; border-radius: 10px; border: 1px solid rgba(99,102,241,0.2);">
                     <strong><svg width="14" height="14" style="display:inline; margin-top:-2px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> คอลัมน์พื้นฐาน:</strong><br>
-                    ลำดับ, รหัสนักเรียน, ชื่อ-สกุล (รวมคำนำหน้า)
+                    ลำดับ, ชื่อ-สกุล (รวมคำนำหน้า)
                 </div>
                 
-                <label class="checkbox-label" style="margin-bottom: 15px; width: fit-content;">
-                    <input type="checkbox" id="exportCitizenId"> แสดงเลขประจำตัวประชาชน
-                </label>
+                <div class="checkbox-grid" style="margin-bottom: 15px;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="exportStudentId" checked> แสดงรหัสนักเรียน
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="exportCitizenId"> แสดงเลขประจำตัวประชาชน
+                    </label>
+                </div>
+
+                <!-- กลุ่มเลือกรูปแบบตัวเลข (แสดงเฉพาะ PDF) -->
+                <div id="exportNumberFormatGroup" style="margin-bottom: 15px; display: none;">
+                    <p style="margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted);">รูปแบบตัวเลข (เฉพาะ PDF):</p>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="exportNumberFormat" value="arabic" checked> เลขอารบิก (1, 2, 3...)
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="exportNumberFormat" value="thai"> เลขไทย (๑, ๒, ๓...)
+                        </label>
+                    </div>
+                </div>
 
                 <p style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-muted);">คอลัมน์ว่างเพิ่มเติม (สูงสุด 2 คอลัมน์):</p>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -576,19 +593,6 @@
         const loadingState = document.getElementById('loadingState');
         const emptyState = document.getElementById('emptyState');
         const recordCount = document.getElementById('recordCount');
-
-        // Column Mapping for Export
-        const COLUMN_MAP = {
-            no: 'ลำดับ',
-            classroom: 'ห้องเรียน',
-            student_id: 'รหัสนักเรียน',
-            citizen_id: 'เลขประจำตัวประชาชน',
-            prefix: 'คำนำหน้า',
-            first_name: 'ชื่อ',
-            last_name: 'นามสกุล',
-            birth_date: 'วันเกิด',
-            remark: 'สถานะ'
-        };
 
         // Initialize pdfMake fonts
         pdfMake.fonts = {
@@ -833,8 +837,10 @@
             const modal = document.getElementById('exportModal');
             const title = document.getElementById('exportModalTitle');
             const btn = document.getElementById('confirmExportBtn');
+            const numFormatGroup = document.getElementById('exportNumberFormatGroup');
 
             // Reset inputs
+            document.getElementById('exportStudentId').checked = true;
             document.getElementById('exportCitizenId').checked = false;
             document.getElementById('exportBlank1').checked = false;
             document.getElementById('blank1Name').disabled = true;
@@ -842,15 +848,18 @@
             document.getElementById('exportBlank2').checked = false;
             document.getElementById('blank2Name').disabled = true;
             document.getElementById('blank2Name').value = '';
+            document.querySelector('input[name="exportNumberFormat"][value="arabic"]').checked = true;
 
             if (type === 'excel') {
                 title.innerHTML = '<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg> ส่งออกไฟล์ Excel';
                 btn.className = 'btn excel-btn';
                 btn.innerHTML = 'สร้างไฟล์ Excel';
+                numFormatGroup.style.display = 'none'; // ซ่อนการตั้งค่าเลขไทย/อารบิกใน Excel
             } else {
                 title.innerHTML = '<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> สร้างไฟล์ PDF';
                 btn.className = 'btn pdf-btn';
                 btn.innerHTML = 'Preview PDF';
+                numFormatGroup.style.display = 'block'; // แสดงการตั้งค่าเลขไทย/อารบิกสำหรับ PDF
             }
             modal.classList.add('is-active');
         }
@@ -861,9 +870,11 @@
 
         function executeExport() {
             const config = {
+                studentId: document.getElementById('exportStudentId').checked,
                 citizenId: document.getElementById('exportCitizenId').checked,
                 blank1: document.getElementById('exportBlank1').checked ? (document.getElementById('blank1Name').value.trim() || 'คอลัมน์ว่าง 1') : null,
                 blank2: document.getElementById('exportBlank2').checked ? (document.getElementById('blank2Name').value.trim() || 'คอลัมน์ว่าง 2') : null,
+                numberFormat: document.querySelector('input[name="exportNumberFormat"]:checked').value
             };
             
             if (exportType === 'excel') {
@@ -884,11 +895,9 @@
                 let row = {};
                 row['ลำดับ'] = idx + 1;
                 
-                // การแก้ไขปัญหาสำหรับ Excel:
-                // เติมอักขระพิเศษ \u200B (Zero-width space) ไว้ท้ายข้อมูลรหัสนักเรียนและเลขประชาชน
-                // เพื่อบังคับให้โปรแกรม Excel มองว่าเซลล์นี้เป็นข้อความ (Text) ป้องกันตัวเลขกลายเป็น Scientific notation หรือ 0 หาย
-
-                row['รหัสนักเรียน'] = s.student_id ? String(s.student_id) + '\u200B' : '-';
+                if (config.studentId) {
+                    row['รหัสนักเรียน'] = s.student_id ? String(s.student_id) + '\u200B' : '-';
+                }
                 
                 if (config.citizenId) {
                     row['เลขประจำตัวประชาชน'] = s.citizen_id ? String(s.citizen_id) + '\u200B' : '-';
@@ -912,11 +921,16 @@
         }
 
         function exportPDF(config) {
-            const roomName = getRoomName();
+            let roomName = getRoomName();
+            if (config.numberFormat === 'thai') {
+                roomName = toThaiNumber(roomName);
+            }
+
             const tableBody = [];
 
             // 1. Build Headers
-            const headers = ['ลำดับ', 'รหัสนักเรียน'];
+            const headers = ['ลำดับ'];
+            if (config.studentId) headers.push('รหัสนักเรียน');
             if (config.citizenId) headers.push('เลขประจำตัวประชาชน');
             headers.push('ชื่อ - นามสกุล');
             if (config.blank1) headers.push(config.blank1);
@@ -934,17 +948,30 @@
             // 2. Data Rows
             currentData.forEach((s, idx) => {
                 const row = [];
+                
                 // ลำดับ
-                row.push({ text: (idx + 1).toString(), alignment: 'center', margin: [0, 3, 0, 3] });
+                let indexStr = (idx + 1).toString();
+                if (config.numberFormat === 'thai') indexStr = toThaiNumber(indexStr);
+                row.push({ text: indexStr, alignment: 'center', margin: [0, 3, 0, 3] });
+                
                 // รหัสนักเรียน
-                row.push({ text: (s.student_id || '-').toString(), alignment: 'center', margin: [0, 3, 0, 3] });
+                if (config.studentId) {
+                    let stuId = (s.student_id || '-').toString();
+                    if (config.numberFormat === 'thai' && stuId !== '-') stuId = toThaiNumber(stuId);
+                    row.push({ text: stuId, alignment: 'center', margin: [0, 3, 0, 3] });
+                }
+
                 // เลขประจำตัวประชาชน
                 if (config.citizenId) {
-                    row.push({ text: (s.citizen_id || '-').toString(), alignment: 'center', margin: [0, 3, 0, 3] });
+                    let citId = (s.citizen_id || '-').toString();
+                    if (config.numberFormat === 'thai' && citId !== '-') citId = toThaiNumber(citId);
+                    row.push({ text: citId, alignment: 'center', margin: [0, 3, 0, 3] });
                 }
-                // ชื่อ - นามสกุล (รวมกันเพื่อประหยัดพื้นที่)
+
+                // ชื่อ - นามสกุล
                 const fullName = `${s.prefix || ''}${s.first_name || ''} ${s.last_name || ''}`.trim() || '-';
                 row.push({ text: fullName, alignment: 'left', margin: [0, 3, 0, 3] });
+                
                 // คอลัมน์ว่าง 1
                 if (config.blank1) row.push({ text: '', margin: [0, 3, 0, 3] });
                 // คอลัมน์ว่าง 2
@@ -967,7 +994,7 @@
                 pageOrientation: 'portrait',
                 pageMargins: [40, 60, 40, 50],
                 defaultStyle: {
-                    font: 'Prompt', // Using Prompt as requested by previous spec
+                    font: 'Prompt', 
                     fontSize: 10,
                     color: '#1e293b'
                 },
@@ -981,8 +1008,14 @@
                     };
                 },
                 footer: function(currentPage, pageCount) {
+                    let cp = currentPage.toString();
+                    let pc = pageCount.toString();
+                    if (config.numberFormat === 'thai') {
+                        cp = toThaiNumber(cp);
+                        pc = toThaiNumber(pc);
+                    }
                     return {
-                        text: `หน้า ${currentPage} / ${pageCount}`,
+                        text: `หน้า ${cp} / ${pc}`,
                         alignment: 'right',
                         fontSize: 9,
                         margin: [0, 10, 40, 0],
@@ -1101,7 +1134,7 @@
 
                 tableBody.push([
                     { text: indexStr, alignment: 'center', margin: [0, 2, 0, 2] },
-                    { text: '', alignment: 'left', margin: [0, 2, 0, 2] },            // เว้นว่างให้เติมชื่อ
+                    { text: '', alignment: 'left', margin: [0, 2, 0, 2] },             // เว้นว่างให้เติมชื่อ
                     { text: amountStr, alignment: 'center', margin: [0, 2, 0, 2] },      // ล็อกจำนวนเงิน 160 ไว้
                     { text: '', alignment: 'center', margin: [0, 2, 0, 2] },          // ช่องว่างวันที่
                     { text: '', alignment: 'center', margin: [0, 2, 0, 2] },          // ช่องว่างชื่อผู้ปกครอง
